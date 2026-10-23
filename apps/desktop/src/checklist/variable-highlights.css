@@ -1,0 +1,7 @@
+/* Only the absolute background expands. Fixed insets give short and long
+   references the same gentle expansion; text and layout never move or scale. */
+.execution-steps .parts-view,.execution-steps .parts-edit{position:relative;isolation:isolate}
+.execution-steps .variable-token[data-variable-match],.execution-steps [data-frozen-reference][data-variable-match]{display:inline-block;max-width:100%;vertical-align:baseline;position:relative;background:transparent;color:var(--text);border-color:transparent;border-radius:5px;box-shadow:none}
+.execution-steps [data-variable-match]::before{content:"";position:absolute;inset:-1px;z-index:-1;background:var(--accent-soft);border:1px solid var(--accent-border);border-radius:5px;pointer-events:none;transform-origin:center}
+.execution-steps .variable-token[data-variable-match]{line-height:1.3}
+.execution-steps [data-variable-match][data-variable-missing="true"]::before{border-style:dashed}

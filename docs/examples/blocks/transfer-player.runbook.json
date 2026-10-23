@@ -1,0 +1,303 @@
+{
+  "formatVersion": 2,
+  "kind": "block",
+  "id": "transfer-player-block",
+  "name": "玩家转区",
+  "document": {
+    "groups": [
+      {
+        "id": "transfer-definition-group",
+        "name": "玩家转区",
+        "description": "核对本玩家的原区、目标区、玩家 ID 和平台账号 ID。\n六个转区子步骤依次记录，群通知使用玩家 ID。"
+      }
+    ],
+    "parameters": [
+      {
+        "id": "environment",
+        "name": "环境",
+        "description": "转区操作环境。",
+        "defaultValue": "release",
+        "ownerId": "transfer-definition-group"
+      },
+      {
+        "id": "sourceDistrict",
+        "name": "原区 districtno",
+        "description": "target：玩家当前所在区服的 districtno。",
+        "defaultValue": "",
+        "ownerId": "transfer-definition-group"
+      },
+      {
+        "id": "targetDistrict",
+        "name": "目标区 districtno",
+        "description": "newdistrict：转区后的 districtno。",
+        "defaultValue": "",
+        "ownerId": "transfer-definition-group"
+      },
+      {
+        "id": "playerId",
+        "name": "玩家 ID（通知用）",
+        "description": "playerid：玩家 ID，群通知引用本参数。",
+        "defaultValue": "",
+        "ownerId": "transfer-definition-group"
+      },
+      {
+        "id": "passcardId",
+        "name": "平台账号 ID",
+        "description": "passcardid：平台账号 ID。",
+        "defaultValue": "",
+        "ownerId": "transfer-definition-group"
+      }
+    ],
+    "steps": [
+      {
+        "id": "transfer-checktransfer",
+        "title": [
+          "检查转区"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-checktransfer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "sourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "targetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "playerId"
+              },
+              " ",
+              {
+                "parameterId": "passcardId"
+              },
+              " checktransfer"
+            ]
+          }
+        ],
+        "groupId": "transfer-definition-group"
+      },
+      {
+        "id": "transfer-exportplayer",
+        "title": [
+          "导出玩家"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-exportplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "sourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "targetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "playerId"
+              },
+              " ",
+              {
+                "parameterId": "passcardId"
+              },
+              " exportplayer"
+            ]
+          }
+        ],
+        "groupId": "transfer-definition-group"
+      },
+      {
+        "id": "transfer-importplayer",
+        "title": [
+          "导入玩家"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-importplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "sourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "targetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "playerId"
+              },
+              " ",
+              {
+                "parameterId": "passcardId"
+              },
+              " importplayer"
+            ]
+          }
+        ],
+        "groupId": "transfer-definition-group"
+      },
+      {
+        "id": "transfer-refreshrole",
+        "title": [
+          "刷新角色"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-refreshrole-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "sourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "targetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "playerId"
+              },
+              " ",
+              {
+                "parameterId": "passcardId"
+              },
+              " refreshrole"
+            ]
+          }
+        ],
+        "groupId": "transfer-definition-group"
+      },
+      {
+        "id": "transfer-deletesourceplayer",
+        "title": [
+          "删除原区玩家"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-deletesourceplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "sourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "targetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "playerId"
+              },
+              " ",
+              {
+                "parameterId": "passcardId"
+              },
+              " deletesourceplayer"
+            ]
+          }
+        ],
+        "groupId": "transfer-definition-group"
+      },
+      {
+        "id": "transfer-removerank",
+        "title": [
+          "移除排行"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-removerank-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "sourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "targetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "playerId"
+              },
+              " ",
+              {
+                "parameterId": "passcardId"
+              },
+              " removerank"
+            ]
+          }
+        ],
+        "groupId": "transfer-definition-group"
+      },
+      {
+        "id": "transfer-notice",
+        "title": [
+          "通知玩家 ",
+          {
+            "parameterId": "playerId"
+          },
+          " 操作结束"
+        ],
+        "description": [
+          "在大群通知：",
+          {
+            "parameterId": "playerId"
+          },
+          " 操作结束，克隆进内服检查。\n通知使用玩家 ID（playerid）。"
+        ],
+        "commands": [],
+        "groupId": "transfer-definition-group"
+      }
+    ]
+  },
+  "createdAt": "2026-10-20T00:00:00.000Z",
+  "updatedAt": "2026-10-20T00:00:00.000Z"
+}

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext", "moduleResolution": "Bundler", "jsx": "react-jsx",
+    "strict": true, "noEmit": true, "skipLibCheck": true,
+    "esModuleInterop": true, "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true, "types": ["node"],
+    "baseUrl": ".", "paths": {
+      "@runbook/contracts": ["packages/core/contracts/src/index.ts"],
+      "@runbook/desktop-api": ["packages/client/desktop-api/src/index.ts"],
+      "@runbook/editor": ["packages/markdown/editor/src/index.tsx"],
+      "@runbook/ui": ["packages/client/ui/src/index.tsx"]
+    }
+  },
+  "include": ["apps/desktop/src", "packages", "scripts/**/*.ts"]
+}

@@ -1,0 +1,10 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Runbook", "version": "0.1.0", "identifier": "local.runbook.desktop",
+  "build": { "beforeDevCommand": "node ../../scripts/web.mjs --host 127.0.0.1", "devUrl": "http://localhost:1420", "beforeBuildCommand": "node ../../scripts/web.mjs build", "frontendDist": "../dist" },
+  "app": {
+    "windows": [{ "label": "main", "create": false, "title": "Runbook · 操作手册", "decorations": false, "shadow": true, "resizable": true, "width": 1320, "height": 880, "minWidth": 940, "minHeight": 640, "backgroundColor": "#f7f8f6" }],
+    "security": { "csp": "default-src 'self'; img-src 'self' data: asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src ipc: http://ipc.localhost", "capabilities": ["main"] }
+  },
+  "bundle": { "active": false, "targets": ["nsis"], "icon": ["icons/icon.ico"] }
+}

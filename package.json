@@ -1,0 +1,28 @@
+{
+  "name": "runbook-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "check:repo": "node scripts/check-repository.mjs",
+    "dev": "node scripts/desktop.mjs dev",
+    "dev:web": "node scripts/web.mjs --host 127.0.0.1",
+    "build": "node scripts/web.mjs build",
+    "build:desktop": "node scripts/desktop.mjs build --debug --no-bundle",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:rust": "node scripts/cargo.mjs test --workspace",
+    "generate:types": "node scripts/cargo.mjs run -p runbook-core --bin export-types && node scripts/cargo.mjs run -p runbook-store --bin export-store-types",
+    "check:rust": "node scripts/cargo.mjs check --workspace"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.2",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4",
+    "@playwright/test": "^1.61.1"
+  }
+}

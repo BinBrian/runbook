@@ -1,0 +1,1635 @@
+{
+  "formatVersion": 2,
+  "kind": "template",
+  "id": "release-maintenance-with-transfers-v1",
+  "name": "维护演示 · 发布与玩家转区",
+  "document": {
+    "parameters": [
+      {
+        "id": "environment",
+        "name": "操作环境",
+        "description": "所有维护、转区、起服和开放登录命令共用此环境。",
+        "defaultValue": "release"
+      },
+      {
+        "id": "maintenanceStart",
+        "name": "维护开始时间",
+        "description": "每次维护重新填写，格式 YYYY-MM-DD-HH-mm。演示时间为 2026-10-14-08-00。",
+        "defaultValue": "",
+        "ownerId": "maintenance-announcement"
+      },
+      {
+        "id": "maintenanceEnd",
+        "name": "维护结束时间",
+        "description": "每次维护重新填写，格式 YYYY-MM-DD-HH-mm。演示时间为 2026-10-14-09-00。",
+        "defaultValue": "",
+        "ownerId": "maintenance-announcement"
+      },
+      {
+        "id": "sourceBranch",
+        "name": "发布来源分支",
+        "description": "copybranch 的来源分支，目标使用操作环境。",
+        "defaultValue": "preview",
+        "ownerId": "copy-branch"
+      },
+      {
+        "id": "transfer1SourceDistrict",
+        "name": "原区 districtno",
+        "description": "target：玩家当前所在区服的 districtno。",
+        "defaultValue": "9001001",
+        "ownerId": "player-transfer-1"
+      },
+      {
+        "id": "transfer1TargetDistrict",
+        "name": "目标区 districtno",
+        "description": "newdistrict：玩家转区后的 districtno。",
+        "defaultValue": "9001002",
+        "ownerId": "player-transfer-1"
+      },
+      {
+        "id": "transfer1PlayerId",
+        "name": "玩家 ID（通知用）",
+        "description": "playerid：玩家 ID，命令第三个身份参数；群通知使用此值。",
+        "defaultValue": "9002001",
+        "ownerId": "player-transfer-1"
+      },
+      {
+        "id": "transfer1PasscardId",
+        "name": "平台账号 ID",
+        "description": "passcardid：平台账号 ID，命令第四个身份参数；群通知不使用此值。",
+        "defaultValue": "9003001",
+        "ownerId": "player-transfer-1"
+      },
+      {
+        "id": "transfer2SourceDistrict",
+        "name": "原区 districtno",
+        "description": "target：玩家当前所在区服的 districtno。",
+        "defaultValue": "9001003",
+        "ownerId": "player-transfer-2"
+      },
+      {
+        "id": "transfer2TargetDistrict",
+        "name": "目标区 districtno",
+        "description": "newdistrict：玩家转区后的 districtno。",
+        "defaultValue": "9001001",
+        "ownerId": "player-transfer-2"
+      },
+      {
+        "id": "transfer2PlayerId",
+        "name": "玩家 ID（通知用）",
+        "description": "playerid：玩家 ID，命令第三个身份参数；群通知使用此值。",
+        "defaultValue": "9002002",
+        "ownerId": "player-transfer-2"
+      },
+      {
+        "id": "transfer2PasscardId",
+        "name": "平台账号 ID",
+        "description": "passcardid：平台账号 ID，命令第四个身份参数；群通知不使用此值。",
+        "defaultValue": "9003002",
+        "ownerId": "player-transfer-2"
+      },
+      {
+        "id": "transfer3SourceDistrict",
+        "name": "原区 districtno",
+        "description": "target：玩家当前所在区服的 districtno。",
+        "defaultValue": "9001003",
+        "ownerId": "player-transfer-3"
+      },
+      {
+        "id": "transfer3TargetDistrict",
+        "name": "目标区 districtno",
+        "description": "newdistrict：玩家转区后的 districtno。",
+        "defaultValue": "9001001",
+        "ownerId": "player-transfer-3"
+      },
+      {
+        "id": "transfer3PlayerId",
+        "name": "玩家 ID（通知用）",
+        "description": "playerid：玩家 ID，命令第三个身份参数；群通知使用此值。",
+        "defaultValue": "9002003",
+        "ownerId": "player-transfer-3"
+      },
+      {
+        "id": "transfer3PasscardId",
+        "name": "平台账号 ID",
+        "description": "passcardid：平台账号 ID，命令第四个身份参数；群通知不使用此值。",
+        "defaultValue": "9003003",
+        "ownerId": "player-transfer-3"
+      },
+      {
+        "id": "sandboxa-environment",
+        "name": "环境",
+        "description": "本次步骤块的环境，四个子步骤共用；与其他块及流程全局环境独立。",
+        "defaultValue": "sandboxa",
+        "ownerId": "update-sandboxa"
+      }
+    ],
+    "steps": [
+      {
+        "id": "day-before-maintain",
+        "title": [
+          "前一天 · 设置维护时间"
+        ],
+        "description": [
+          "本次环境：",
+          {
+            "parameterId": "environment"
+          },
+          "\n维护窗口：",
+          {
+            "parameterId": "maintenanceStart"
+          },
+          " 至 ",
+          {
+            "parameterId": "maintenanceEnd"
+          },
+          "\n核对本次维护窗口后复制命令，在外部工具操作。"
+        ],
+        "commands": [
+          {
+            "id": "day-before-maintain-cmd",
+            "text": [
+              "maintain ",
+              {
+                "parameterId": "environment"
+              },
+              " GameServer ",
+              {
+                "parameterId": "maintenanceStart"
+              },
+              " ",
+              {
+                "parameterId": "maintenanceEnd"
+              }
+            ]
+          }
+        ],
+        "groupId": "maintenance-announcement"
+      },
+      {
+        "id": "day-before-notice",
+        "title": [
+          "前一天 · 在大群截图通知"
+        ],
+        "description": [
+          "在大群发送维护截图通知。\n维护窗口：",
+          {
+            "parameterId": "maintenanceStart"
+          },
+          " 至 ",
+          {
+            "parameterId": "maintenanceEnd"
+          },
+          "\n可将已发送通知的截图或说明留在本步骤下。"
+        ],
+        "commands": [],
+        "groupId": "maintenance-announcement"
+      },
+      {
+        "id": "day-of-backup",
+        "title": [
+          "维护当天 · 等待备份完成（如有）"
+        ],
+        "description": [
+          "有备份任务时，等待其完成；本次无备份任务时，明确跳过并填写原因。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "close-game-server",
+        "title": [
+          "维护当天 · 确认 GameServer 关闭"
+        ],
+        "description": [
+          "在外部工具操作并人工确认结果。"
+        ],
+        "commands": [
+          {
+            "id": "close-game-server-cmd",
+            "text": [
+              "confirmclose ",
+              {
+                "parameterId": "environment"
+              },
+              " GameServer"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "notice-closed",
+        "title": [
+          "维护当天 · 在大群通知停服"
+        ],
+        "description": [
+          "在大群通知：服务器停服，开始处理转区。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "stop-common",
+        "title": [
+          "维护当天 · 停止 Common"
+        ],
+        "description": [
+          "在外部工具操作并人工确认结果。"
+        ],
+        "commands": [
+          {
+            "id": "stop-common-cmd",
+            "text": [
+              "stopserver ",
+              {
+                "parameterId": "environment"
+              },
+              " Common"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "copy-branch",
+        "title": [
+          "维护当天 · 复制发布分支"
+        ],
+        "description": [
+          "来源：",
+          {
+            "parameterId": "sourceBranch"
+          },
+          "\n目标：",
+          {
+            "parameterId": "environment"
+          }
+        ],
+        "commands": [
+          {
+            "id": "copy-branch-cmd",
+            "text": [
+              "copybranch ",
+              {
+                "parameterId": "sourceBranch"
+              },
+              " ",
+              {
+                "parameterId": "environment"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "publish-game",
+        "title": [
+          "维护当天 · 发布游戏"
+        ],
+        "description": [
+          "在外部工具操作并人工确认结果。"
+        ],
+        "commands": [
+          {
+            "id": "publish-game-cmd",
+            "text": [
+              "publishgame ",
+              {
+                "parameterId": "environment"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stop-base",
+        "title": [
+          "维护当天 · 停止 Base"
+        ],
+        "description": [
+          "在外部工具操作并人工确认结果。"
+        ],
+        "commands": [
+          {
+            "id": "stop-base-cmd",
+            "text": [
+              "stopserver ",
+              {
+                "parameterId": "environment"
+              },
+              " Base"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "sync-game",
+        "title": [
+          "维护当天 · 同步游戏"
+        ],
+        "description": [
+          "在外部工具操作并人工确认结果。"
+        ],
+        "commands": [
+          {
+            "id": "sync-game-cmd",
+            "text": [
+              "syncgame ",
+              {
+                "parameterId": "environment"
+              },
+              " all"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "confirm-all-closed",
+        "title": [
+          "维护当天 · 确认全部服务关闭"
+        ],
+        "description": [
+          "在外部工具操作并人工确认结果。"
+        ],
+        "commands": [
+          {
+            "id": "confirm-all-closed-cmd",
+            "text": [
+              "confirmclose ",
+              {
+                "parameterId": "environment"
+              },
+              " all"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "transfer-1-checktransfer",
+        "title": [
+          "检查转区"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer1SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer1TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer1PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer1PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-1-checktransfer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer1SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PasscardId"
+              },
+              " checktransfer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-1"
+      },
+      {
+        "id": "transfer-1-exportplayer",
+        "title": [
+          "导出玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer1SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer1TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer1PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer1PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-1-exportplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer1SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PasscardId"
+              },
+              " exportplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-1"
+      },
+      {
+        "id": "transfer-1-importplayer",
+        "title": [
+          "导入玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer1SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer1TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer1PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer1PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-1-importplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer1SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PasscardId"
+              },
+              " importplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-1"
+      },
+      {
+        "id": "transfer-1-refreshrole",
+        "title": [
+          "刷新角色"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer1SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer1TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer1PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer1PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-1-refreshrole-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer1SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PasscardId"
+              },
+              " refreshrole"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-1"
+      },
+      {
+        "id": "transfer-1-deletesourceplayer",
+        "title": [
+          "删除原区玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer1SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer1TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer1PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer1PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-1-deletesourceplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer1SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PasscardId"
+              },
+              " deletesourceplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-1"
+      },
+      {
+        "id": "transfer-1-removerank",
+        "title": [
+          "移除排行"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer1SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer1TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer1PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer1PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-1-removerank-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer1SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer1PasscardId"
+              },
+              " removerank"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-1"
+      },
+      {
+        "id": "transfer-1-notice",
+        "title": [
+          "转区 1（如有）· 通知玩家 ",
+          {
+            "parameterId": "transfer1PlayerId"
+          },
+          " 操作结束"
+        ],
+        "description": [
+          "在大群通知：",
+          {
+            "parameterId": "transfer1PlayerId"
+          },
+          " 操作结束，克隆进内服检查。\n通知使用玩家 ID（playerid），不是平台账号 ID（passcardid）。本组未转区时跳过。"
+        ],
+        "commands": [],
+        "groupId": "player-transfer-1"
+      },
+      {
+        "id": "transfer-2-checktransfer",
+        "title": [
+          "检查转区"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer2SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer2TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer2PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer2PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-2-checktransfer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer2SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PasscardId"
+              },
+              " checktransfer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-2"
+      },
+      {
+        "id": "transfer-2-exportplayer",
+        "title": [
+          "导出玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer2SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer2TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer2PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer2PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-2-exportplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer2SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PasscardId"
+              },
+              " exportplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-2"
+      },
+      {
+        "id": "transfer-2-importplayer",
+        "title": [
+          "导入玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer2SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer2TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer2PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer2PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-2-importplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer2SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PasscardId"
+              },
+              " importplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-2"
+      },
+      {
+        "id": "transfer-2-refreshrole",
+        "title": [
+          "刷新角色"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer2SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer2TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer2PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer2PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-2-refreshrole-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer2SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PasscardId"
+              },
+              " refreshrole"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-2"
+      },
+      {
+        "id": "transfer-2-deletesourceplayer",
+        "title": [
+          "删除原区玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer2SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer2TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer2PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer2PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-2-deletesourceplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer2SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PasscardId"
+              },
+              " deletesourceplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-2"
+      },
+      {
+        "id": "transfer-2-removerank",
+        "title": [
+          "移除排行"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer2SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer2TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer2PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer2PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-2-removerank-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer2SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer2PasscardId"
+              },
+              " removerank"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-2"
+      },
+      {
+        "id": "transfer-2-notice",
+        "title": [
+          "转区 2（如有）· 通知玩家 ",
+          {
+            "parameterId": "transfer2PlayerId"
+          },
+          " 操作结束"
+        ],
+        "description": [
+          "在大群通知：",
+          {
+            "parameterId": "transfer2PlayerId"
+          },
+          " 操作结束，克隆进内服检查。\n通知使用玩家 ID（playerid），不是平台账号 ID（passcardid）。本组未转区时跳过。"
+        ],
+        "commands": [],
+        "groupId": "player-transfer-2"
+      },
+      {
+        "id": "transfer-3-checktransfer",
+        "title": [
+          "检查转区"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer3SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer3TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer3PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer3PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-3-checktransfer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer3SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PasscardId"
+              },
+              " checktransfer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-3"
+      },
+      {
+        "id": "transfer-3-exportplayer",
+        "title": [
+          "导出玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer3SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer3TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer3PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer3PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-3-exportplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer3SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PasscardId"
+              },
+              " exportplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-3"
+      },
+      {
+        "id": "transfer-3-importplayer",
+        "title": [
+          "导入玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer3SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer3TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer3PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer3PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-3-importplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer3SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PasscardId"
+              },
+              " importplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-3"
+      },
+      {
+        "id": "transfer-3-refreshrole",
+        "title": [
+          "刷新角色"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer3SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer3TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer3PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer3PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-3-refreshrole-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer3SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PasscardId"
+              },
+              " refreshrole"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-3"
+      },
+      {
+        "id": "transfer-3-deletesourceplayer",
+        "title": [
+          "删除原区玩家"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer3SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer3TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer3PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer3PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-3-deletesourceplayer-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer3SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PasscardId"
+              },
+              " deletesourceplayer"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-3"
+      },
+      {
+        "id": "transfer-3-removerank",
+        "title": [
+          "移除排行"
+        ],
+        "description": [
+          "本组无转区时跳过，或在实例开始前删除本组步骤。\n原区 target：",
+          {
+            "parameterId": "transfer3SourceDistrict"
+          },
+          "\n目标区 newdistrict：",
+          {
+            "parameterId": "transfer3TargetDistrict"
+          },
+          "\n玩家 ID playerid（通知用）：",
+          {
+            "parameterId": "transfer3PlayerId"
+          },
+          "\n平台账号 ID passcardid：",
+          {
+            "parameterId": "transfer3PasscardId"
+          },
+          "\n按原流程顺序在外部工具操作，并记录本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "transfer-3-removerank-cmd",
+            "text": [
+              "transferserver ",
+              {
+                "parameterId": "environment"
+              },
+              " ",
+              {
+                "parameterId": "transfer3SourceDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3TargetDistrict"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PlayerId"
+              },
+              " ",
+              {
+                "parameterId": "transfer3PasscardId"
+              },
+              " removerank"
+            ]
+          }
+        ],
+        "groupId": "player-transfer-3"
+      },
+      {
+        "id": "transfer-3-notice",
+        "title": [
+          "转区 3（如有）· 通知玩家 ",
+          {
+            "parameterId": "transfer3PlayerId"
+          },
+          " 操作结束"
+        ],
+        "description": [
+          "在大群通知：",
+          {
+            "parameterId": "transfer3PlayerId"
+          },
+          " 操作结束，克隆进内服检查。\n通知使用玩家 ID（playerid），不是平台账号 ID（passcardid）。本组未转区时跳过。"
+        ],
+        "commands": [],
+        "groupId": "player-transfer-3"
+      },
+      {
+        "id": "wait-role-clone",
+        "title": [
+          "起服前 · 等待测试完成角色克隆"
+        ],
+        "description": [
+          "等待测试完成本次转区角色的克隆，确认后再起服。本次无转区或无角色克隆任务时跳过并说明。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "start-all",
+        "title": [
+          "起服 · 启动全部服务"
+        ],
+        "description": [
+          "在外部工具操作并人工确认结果。"
+        ],
+        "commands": [
+          {
+            "id": "start-all-cmd",
+            "text": [
+              "startserver ",
+              {
+                "parameterId": "environment"
+              },
+              " all"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "notice-started",
+        "title": [
+          "起服 · 在大群通知白名单登录"
+        ],
+        "description": [
+          "在大群通知：服务器起服，限制白名单账号登录。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "check-startup-logs",
+        "title": [
+          "起服后 · 检查服务注册与 Player 就绪"
+        ],
+        "description": [
+          "启动完成后检查日志：\n1. 所有服务注册：关键字 ProxyService.Allready。\n2. Player 服务就绪：关键字 PlayerService.Allready。\n可在评论中记录检查结论，并添加日志截图。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "merge-if-needed",
+        "title": [
+          "起服后 · 合服操作（如有）"
+        ],
+        "description": [
+          "按本次合服方案人工操作并记录。本次无合服时跳过并填写原因。本演示仅保留人工检查点。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "confirm-testing",
+        "title": [
+          "维护收尾 · 确认测试完成"
+        ],
+        "description": [
+          "确认测试完成，再通知值班同事发送维护邮件。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "request-maintenance-mail",
+        "title": [
+          "维护收尾 · 通知值班同事发送维护邮件"
+        ],
+        "description": [
+          "测试完成后，通知值班同事：发送维护邮件。此步骤只记录通知结果，邮件发送完成在开放登录前另行确认。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "restart-internal-repair",
+        "title": [
+          "维护收尾 · 更新重启内部测试环境"
+        ],
+        "description": [
+          "更新并重启内部测试环境，记录操作结果。本演示仅保留人工检查点。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "update-sandboxa-stopserver",
+        "title": [
+          "停止服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxa-stopserver-cmd",
+            "text": [
+              "stopserver ",
+              {
+                "parameterId": "sandboxa-environment"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxa"
+      },
+      {
+        "id": "update-sandboxa-publishgame",
+        "title": [
+          "发布游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxa-publishgame-cmd",
+            "text": [
+              "publishgame ",
+              {
+                "parameterId": "sandboxa-environment"
+              }
+            ]
+          }
+        ],
+        "groupId": "update-sandboxa"
+      },
+      {
+        "id": "update-sandboxa-syncgame",
+        "title": [
+          "同步游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxa-syncgame-cmd",
+            "text": [
+              "syncgame ",
+              {
+                "parameterId": "sandboxa-environment"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxa"
+      },
+      {
+        "id": "update-sandboxa-startserver",
+        "title": [
+          "启动服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxa-startserver-cmd",
+            "text": [
+              "startserver ",
+              {
+                "parameterId": "sandboxa-environment"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxa"
+      },
+      {
+        "id": "confirm-mail-sent",
+        "title": [
+          "开放登录前 · 确认维护邮件发送完成"
+        ],
+        "description": [
+          "确认维护邮件已经发送完成，然后再进入开放登录步骤。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "allow-login",
+        "title": [
+          "维护结束 · 开放登录"
+        ],
+        "description": [
+          "维护邮件发送完成后，在外部工具操作并人工确认开放登录结果。"
+        ],
+        "commands": [
+          {
+            "id": "allow-login-cmd",
+            "text": [
+              "allowlogin ",
+              {
+                "parameterId": "environment"
+              },
+              " all"
+            ]
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "id": "maintenance-announcement",
+        "name": "维护预告",
+        "description": "维护前一天确认本次起止时间，并在大群截图通知。"
+      },
+      {
+        "id": "player-transfer-1",
+        "name": "玩家转区 1（如有）",
+        "description": "只处理本组玩家；操作前核对原区、目标区、玩家 ID 和平台账号 ID。\n六个转区子步骤依次记录，完成后的群通知使用本组玩家 ID。",
+        "sourceBlockId": "transfer-player-block"
+      },
+      {
+        "id": "player-transfer-2",
+        "name": "玩家转区 2（如有）",
+        "description": "只处理本组玩家；操作前核对原区、目标区、玩家 ID 和平台账号 ID。\n六个转区子步骤依次记录，完成后的群通知使用本组玩家 ID。",
+        "sourceBlockId": "transfer-player-block"
+      },
+      {
+        "id": "player-transfer-3",
+        "name": "玩家转区 3（如有）",
+        "description": "只处理本组玩家；操作前核对原区、目标区、玩家 ID 和平台账号 ID。\n六个转区子步骤依次记录，完成后的群通知使用本组玩家 ID。",
+        "sourceBlockId": "transfer-player-block"
+      },
+      {
+        "id": "update-sandboxa",
+        "name": "示例环境A sandboxa · 更新重启",
+        "description": "核对本次目标环境，再依次停止、发布、同步和启动服务。\n每个子步骤均由操作者确认结果，各环境的参数和记录独立。",
+        "sourceBlockId": "restart-services-block"
+      }
+    ]
+  }
+}

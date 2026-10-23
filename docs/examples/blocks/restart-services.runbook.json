@@ -1,0 +1,115 @@
+{
+  "formatVersion": 2,
+  "kind": "block",
+  "id": "restart-services-block",
+  "name": "更新重启服务",
+  "document": {
+    "groups": [
+      {
+        "id": "restart-definition-group",
+        "name": "更新重启服务",
+        "description": "核对本次目标环境，再依次停止、发布、同步和启动服务。\n每个子步骤均由操作者确认结果，各环境的参数和记录独立。"
+      }
+    ],
+    "parameters": [
+      {
+        "id": "restart-environment",
+        "name": "环境",
+        "description": "本次步骤块的环境，四个子步骤共用；与其他块及流程全局环境独立。",
+        "defaultValue": "",
+        "ownerId": "restart-definition-group"
+      }
+    ],
+    "steps": [
+      {
+        "id": "restart-definition-group-stopserver",
+        "title": [
+          "停止服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "restart-definition-group-stopserver-cmd",
+            "text": [
+              "stopserver ",
+              {
+                "parameterId": "restart-environment"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "restart-definition-group"
+      },
+      {
+        "id": "restart-definition-group-publishgame",
+        "title": [
+          "发布游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "restart-definition-group-publishgame-cmd",
+            "text": [
+              "publishgame ",
+              {
+                "parameterId": "restart-environment"
+              }
+            ]
+          }
+        ],
+        "groupId": "restart-definition-group"
+      },
+      {
+        "id": "restart-definition-group-syncgame",
+        "title": [
+          "同步游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "restart-definition-group-syncgame-cmd",
+            "text": [
+              "syncgame ",
+              {
+                "parameterId": "restart-environment"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "restart-definition-group"
+      },
+      {
+        "id": "restart-definition-group-startserver",
+        "title": [
+          "启动服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "restart-definition-group-startserver-cmd",
+            "text": [
+              "startserver ",
+              {
+                "parameterId": "restart-environment"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "restart-definition-group"
+      }
+    ]
+  },
+  "createdAt": "2026-10-20T00:00:00.000Z",
+  "updatedAt": "2026-10-20T00:00:00.000Z"
+}

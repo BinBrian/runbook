@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Runbook Favorite Steps v2",
+  "$comment": "Native validation requires a self-contained contiguous group. Single-step favorites use one storage wrapper group, are unwrapped on insertion, and own all parameters on the sole step. Legacy blocks without favorite metadata are group favorites.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "kind", "id", "name", "document"],
+  "properties": {
+    "formatVersion": { "const": 2 },
+    "kind": { "const": "block" },
+    "id": { "$ref": "document.schema.json#/$defs/id" },
+    "name": { "type": "string", "pattern": "\\S" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "favorite": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "sourceWorkId", "sourceWorkName", "sourceStepIds"],
+      "properties": {
+        "kind": { "enum": ["step", "group"] },
+        "sourceWorkId": { "$ref": "document.schema.json#/$defs/id" },
+        "sourceWorkName": { "type": "string", "pattern": "\\S" },
+        "sourceStepIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "document.schema.json#/$defs/id" } },
+        "sourceGroupId": { "$ref": "document.schema.json#/$defs/id" }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "group" } } }, "then": { "required": ["sourceGroupId"] }, "else": { "not": { "required": ["sourceGroupId"] }, "properties": { "sourceStepIds": { "maxItems": 1 } } } }
+      ]
+    },
+    "document": {
+      "allOf": [
+        { "$ref": "document.schema.json#/$defs/document" },
+        {
+          "type": "object", "required": ["groups"],
+          "properties": { "groups": { "type": "array", "minItems": 1, "maxItems": 1 } }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Runbook Checklist Template v2 (v1 readable)",
+  "$comment": "Structural contract for template generation/import. Native validation additionally enforces byte limits, Windows-safe identities, uniqueness and parameter references.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "kind", "id", "name", "document"],
+  "properties": {
+    "formatVersion": { "enum": [1, 2] },
+    "kind": { "const": "template" },
+    "id": { "$ref": "#/$defs/id" },
+    "name": { "type": "string", "pattern": "\\S" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "document": { "$ref": "#/$defs/document" }
+  },
+  "allOf": [{
+    "if": { "properties": { "formatVersion": { "const": 1 } }, "required": ["formatVersion"] },
+    "then": { "properties": { "document": { "properties": {
+      "groups": { "maxItems": 0 },
+      "parameters": { "items": { "not": { "required": ["ownerId"] } } },
+      "steps": { "items": { "not": { "required": ["groupId"] } } }
+    } } } }
+  }],
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,128}$" },
+    "text": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object", "additionalProperties": false,
+            "required": ["parameterId"],
+            "properties": { "parameterId": { "$ref": "#/$defs/id" } }
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "description", "defaultValue"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "pattern": "\\S" },
+        "description": { "type": "string" },
+        "defaultValue": { "type": "string" },
+        "ownerId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "command": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": { "id": { "$ref": "#/$defs/id" }, "text": { "$ref": "#/$defs/text" } }
+    },
+    "step": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "title", "description", "commands"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "allOf": [{ "$ref": "#/$defs/text" }], "minItems": 1 },
+        "description": { "$ref": "#/$defs/text" },
+        "commands": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/command" } },
+        "groupId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "group": {
+      "type": "object", "additionalProperties": false, "required": ["id", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "$comment": "May be empty for an untitled group; native validation limits UTF-8 bytes to 1024 and rejects NUL." },
+        "description": { "type": "string", "$comment": "Optional plain multiline block description; native validation limits UTF-8 bytes to 1 MiB and rejects NUL." },
+        "sourceBlockId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "document": {
+      "type": "object", "additionalProperties": false,
+      "required": ["parameters", "steps"],
+      "properties": {
+        "parameters": { "type": "array", "maxItems": 1000, "items": { "$ref": "#/$defs/parameter" } },
+        "steps": { "type": "array", "minItems": 1, "maxItems": 2000, "items": { "$ref": "#/$defs/step" } },
+        "groups": { "type": "array", "maxItems": 2000, "items": { "$ref": "#/$defs/group" } }
+      }
+    }
+  }
+}

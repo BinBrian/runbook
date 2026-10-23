@@ -1,0 +1,422 @@
+{
+  "formatVersion": 2,
+  "kind": "template",
+  "id": "four-environment-updates",
+  "name": "多环境更新重启 · 四组独立局部参数",
+  "document": {
+    "parameters": [
+      {
+        "id": "main-environment",
+        "name": "环境",
+        "description": "流程全局环境；以下更新块使用自己的局部环境。",
+        "defaultValue": "release"
+      },
+      {
+        "id": "environment-sandboxa",
+        "name": "环境",
+        "description": "本次步骤块的环境，四个子步骤共用；与其他块及流程全局环境独立。",
+        "defaultValue": "sandboxa",
+        "ownerId": "update-sandboxa"
+      },
+      {
+        "id": "environment-sandboxb",
+        "name": "环境",
+        "description": "本次步骤块的环境，四个子步骤共用；与其他块及流程全局环境独立。",
+        "defaultValue": "sandboxb",
+        "ownerId": "update-sandboxb"
+      },
+      {
+        "id": "environment-sandboxc",
+        "name": "环境",
+        "description": "本次步骤块的环境，四个子步骤共用；与其他块及流程全局环境独立。",
+        "defaultValue": "sandboxc",
+        "ownerId": "update-sandboxc"
+      },
+      {
+        "id": "environment-sandboxd",
+        "name": "环境",
+        "description": "本次步骤块的环境，四个子步骤共用；与其他块及流程全局环境独立。",
+        "defaultValue": "sandboxd",
+        "ownerId": "update-sandboxd"
+      }
+    ],
+    "groups": [
+      {
+        "id": "update-sandboxa",
+        "name": "示例环境A · 更新重启",
+        "description": "核对本次目标环境，再依次停止、发布、同步和启动服务。\n每个子步骤均由操作者确认结果，各环境的参数和记录独立。",
+        "sourceBlockId": "restart-services-block"
+      },
+      {
+        "id": "update-sandboxb",
+        "name": "示例环境B · 更新重启",
+        "description": "核对本次目标环境，再依次停止、发布、同步和启动服务。\n每个子步骤均由操作者确认结果，各环境的参数和记录独立。",
+        "sourceBlockId": "restart-services-block"
+      },
+      {
+        "id": "update-sandboxc",
+        "name": "示例环境C · 更新重启",
+        "description": "核对本次目标环境，再依次停止、发布、同步和启动服务。\n每个子步骤均由操作者确认结果，各环境的参数和记录独立。",
+        "sourceBlockId": "restart-services-block"
+      },
+      {
+        "id": "update-sandboxd",
+        "name": "示例环境D · 更新重启",
+        "description": "核对本次目标环境，再依次停止、发布、同步和启动服务。\n每个子步骤均由操作者确认结果，各环境的参数和记录独立。",
+        "sourceBlockId": "restart-services-block"
+      }
+    ],
+    "steps": [
+      {
+        "id": "update-sandboxa-stopserver",
+        "title": [
+          "停止服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxa-stopserver-cmd",
+            "text": [
+              "stopserver ",
+              {
+                "parameterId": "environment-sandboxa"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxa"
+      },
+      {
+        "id": "update-sandboxa-publishgame",
+        "title": [
+          "发布游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxa-publishgame-cmd",
+            "text": [
+              "publishgame ",
+              {
+                "parameterId": "environment-sandboxa"
+              }
+            ]
+          }
+        ],
+        "groupId": "update-sandboxa"
+      },
+      {
+        "id": "update-sandboxa-syncgame",
+        "title": [
+          "同步游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxa-syncgame-cmd",
+            "text": [
+              "syncgame ",
+              {
+                "parameterId": "environment-sandboxa"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxa"
+      },
+      {
+        "id": "update-sandboxa-startserver",
+        "title": [
+          "启动服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxa-startserver-cmd",
+            "text": [
+              "startserver ",
+              {
+                "parameterId": "environment-sandboxa"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxa"
+      },
+      {
+        "id": "update-sandboxb-stopserver",
+        "title": [
+          "停止服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxb-stopserver-cmd",
+            "text": [
+              "stopserver ",
+              {
+                "parameterId": "environment-sandboxb"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxb"
+      },
+      {
+        "id": "update-sandboxb-publishgame",
+        "title": [
+          "发布游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxb-publishgame-cmd",
+            "text": [
+              "publishgame ",
+              {
+                "parameterId": "environment-sandboxb"
+              }
+            ]
+          }
+        ],
+        "groupId": "update-sandboxb"
+      },
+      {
+        "id": "update-sandboxb-syncgame",
+        "title": [
+          "同步游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxb-syncgame-cmd",
+            "text": [
+              "syncgame ",
+              {
+                "parameterId": "environment-sandboxb"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxb"
+      },
+      {
+        "id": "update-sandboxb-startserver",
+        "title": [
+          "启动服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxb-startserver-cmd",
+            "text": [
+              "startserver ",
+              {
+                "parameterId": "environment-sandboxb"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxb"
+      },
+      {
+        "id": "update-sandboxc-stopserver",
+        "title": [
+          "停止服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxc-stopserver-cmd",
+            "text": [
+              "stopserver ",
+              {
+                "parameterId": "environment-sandboxc"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxc"
+      },
+      {
+        "id": "update-sandboxc-publishgame",
+        "title": [
+          "发布游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxc-publishgame-cmd",
+            "text": [
+              "publishgame ",
+              {
+                "parameterId": "environment-sandboxc"
+              }
+            ]
+          }
+        ],
+        "groupId": "update-sandboxc"
+      },
+      {
+        "id": "update-sandboxc-syncgame",
+        "title": [
+          "同步游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxc-syncgame-cmd",
+            "text": [
+              "syncgame ",
+              {
+                "parameterId": "environment-sandboxc"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxc"
+      },
+      {
+        "id": "update-sandboxc-startserver",
+        "title": [
+          "启动服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxc-startserver-cmd",
+            "text": [
+              "startserver ",
+              {
+                "parameterId": "environment-sandboxc"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxc"
+      },
+      {
+        "id": "update-sandboxd-stopserver",
+        "title": [
+          "停止服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxd-stopserver-cmd",
+            "text": [
+              "stopserver ",
+              {
+                "parameterId": "environment-sandboxd"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxd"
+      },
+      {
+        "id": "update-sandboxd-publishgame",
+        "title": [
+          "发布游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxd-publishgame-cmd",
+            "text": [
+              "publishgame ",
+              {
+                "parameterId": "environment-sandboxd"
+              }
+            ]
+          }
+        ],
+        "groupId": "update-sandboxd"
+      },
+      {
+        "id": "update-sandboxd-syncgame",
+        "title": [
+          "同步游戏"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxd-syncgame-cmd",
+            "text": [
+              "syncgame ",
+              {
+                "parameterId": "environment-sandboxd"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxd"
+      },
+      {
+        "id": "update-sandboxd-startserver",
+        "title": [
+          "启动服务"
+        ],
+        "description": [
+          "复制到外部工具操作，然后人工确认本步结果。"
+        ],
+        "commands": [
+          {
+            "id": "update-sandboxd-startserver-cmd",
+            "text": [
+              "startserver ",
+              {
+                "parameterId": "environment-sandboxd"
+              },
+              " all"
+            ]
+          }
+        ],
+        "groupId": "update-sandboxd"
+      }
+    ]
+  },
+  "createdAt": "2026-10-20T00:00:00.000Z",
+  "updatedAt": "2026-10-20T00:00:00.000Z"
+}

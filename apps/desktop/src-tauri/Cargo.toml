@@ -1,0 +1,24 @@
+[package]
+name = "runbook-desktop"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "runbook_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-single-instance = "2"
+runbook-checklist = { path = "../../../native/runbook-checklist" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tempfile = "3"
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]

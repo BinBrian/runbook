@@ -1,0 +1,1 @@
+{ "name": "@runbook/desktop-api", "version": "0.1.0", "private": true, "type": "module", "exports": "./src/index.ts", "dependencies": { "@runbook/contracts": "workspace:*", "@tauri-apps/api": "^2.9.0", "@tauri-apps/plugin-clipboard-manager": "^2.3.0" } }

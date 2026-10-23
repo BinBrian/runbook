@@ -1,0 +1,85 @@
+{
+  "formatVersion": 1,
+  "kind": "template",
+  "id": "demo-patch-template",
+  "name": "示例补丁维护",
+  "document": {
+    "parameters": [
+      {
+        "id": "environment",
+        "name": "环境",
+        "description": "本次操作的环境名称，用于人工核对",
+        "defaultValue": "演示环境"
+      },
+      {
+        "id": "version",
+        "name": "目标版本",
+        "description": "本次期望的补丁版本",
+        "defaultValue": "0.1.0"
+      },
+      {
+        "id": "packagePath",
+        "name": "补丁包路径",
+        "description": "本次补丁包的完整路径，开始前填写",
+        "defaultValue": ""
+      },
+      {
+        "id": "targetDir",
+        "name": "目标目录",
+        "description": "示例服务所在目录",
+        "defaultValue": "C:\\RunbookDemo\\service"
+      }
+    ],
+    "steps": [
+      {
+        "id": "s1-target",
+        "title": ["核对 ", {"parameterId": "environment"}, " 的维护目标"],
+        "description": ["目标版本：", {"parameterId": "version"}, "\n确认维护范围、维护窗口和人工审批。"],
+        "commands": []
+      },
+      {
+        "id": "s2-package",
+        "title": ["检查补丁包"],
+        "description": ["核对文件是否存在，并比对发布清单中的 SHA256。"],
+        "commands": [
+          {
+            "id": "package-info",
+            "text": ["Get-Item -LiteralPath '", {"parameterId": "packagePath"}, "'"]
+          },
+          {
+            "id": "package-hash",
+            "text": ["Get-FileHash -LiteralPath '", {"parameterId": "packagePath"}, "' -Algorithm SHA256"]
+          }
+        ]
+      },
+      {
+        "id": "s3-backup",
+        "title": ["确认已有可用备份"],
+        "description": ["在外部工具完成备份，并确认恢复方式。\n当前目录：", {"parameterId": "targetDir"}],
+        "commands": []
+      },
+      {
+        "id": "s4-apply",
+        "title": ["在外部工具应用补丁"],
+        "description": ["将 ", {"parameterId": "version"}, " 应用到 ", {"parameterId": "environment"}, "。\n此步骤中的 Demo-PatchTool 为虚构示例工具。"],
+        "commands": [
+          {
+            "id": "apply-patch",
+            "text": ["Demo-PatchTool apply --package \"", {"parameterId": "packagePath"}, "\" --target \"", {"parameterId": "targetDir"}, "\" --version \"", {"parameterId": "version"}, "\""]
+          }
+        ]
+      },
+      {
+        "id": "s5-verify",
+        "title": ["核对 ", {"parameterId": "environment"}, " 的维护结果"],
+        "description": ["核对版本为 ", {"parameterId": "version"}, "，检查服务状态及业务抽查结果。\n按需添加评论和截图，完成后实例仍保留在当前列表，手动归档后移到归档列表。"],
+        "commands": [
+          {
+            "id": "read-version",
+            "text": ["Get-Content -LiteralPath '", {"parameterId": "targetDir"}, "\\VERSION.txt'"]
+          }
+        ]
+      }
+    ]
+  }
+}

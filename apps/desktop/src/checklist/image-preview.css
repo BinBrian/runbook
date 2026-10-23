@@ -1,0 +1,5 @@
+/* Use a normal foreground on the raised surface, never on-fill danger text. */
+.image-lightbox>.lightbox-close.image-preview-close{width:38px;height:38px;padding:0;background:var(--surface-raised);color:var(--text);border:1px solid var(--border);box-shadow:0 2px 8px var(--shadow-strong);cursor:pointer}
+.image-lightbox>.lightbox-close.image-preview-close:hover{background:var(--surface-hover);color:var(--text);border-color:var(--border-hover)}
+.image-lightbox>.lightbox-close.image-preview-close:focus-visible{outline:2px solid var(--accent);outline-offset:3px;background:var(--surface-raised);color:var(--text)}
+.image-lightbox>.lightbox-close.image-preview-close>svg{stroke:currentColor;pointer-events:none}

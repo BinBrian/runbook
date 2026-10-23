@@ -1,0 +1,348 @@
+{
+  "formatVersion": 1,
+  "kind": "instance",
+  "id": "demo-patch-instance-1",
+  "name": "示例补丁维护 / 演示环境 A / 0.1.1",
+  "sourceTemplateId": "demo-patch-template",
+  "createdAt": "2026-10-20T00:58:00Z",
+  "startedAt": "2026-10-20T01:00:00Z",
+  "updatedAt": "2026-10-20T01:25:00Z",
+  "status": "completed",
+  "currentStepId": null,
+  "finishedAt": "2026-10-20T01:15:00Z",
+  "terminationReason": null,
+  "archivedAt": "2026-10-20T01:20:00Z",
+  "document": {
+    "parameters": [
+      {
+        "id": "environment",
+        "name": "环境",
+        "description": "本次操作的环境名称，用于人工核对",
+        "defaultValue": "演示环境"
+      },
+      {
+        "id": "version",
+        "name": "目标版本",
+        "description": "本次期望的补丁版本",
+        "defaultValue": "0.1.0"
+      },
+      {
+        "id": "packagePath",
+        "name": "补丁包路径",
+        "description": "本次补丁包的完整路径，开始前填写",
+        "defaultValue": ""
+      },
+      {
+        "id": "targetDir",
+        "name": "目标目录",
+        "description": "示例服务所在目录",
+        "defaultValue": "C:\\RunbookDemo\\service"
+      }
+    ],
+    "steps": [
+      {
+        "id": "s1-target",
+        "title": [
+          "核对 ",
+          {
+            "parameterId": "environment"
+          },
+          " 的维护目标"
+        ],
+        "description": [
+          "目标版本：",
+          {
+            "parameterId": "version"
+          },
+          "\n确认维护范围、维护窗口和人工审批。"
+        ],
+        "commands": []
+      },
+      {
+        "id": "s2-package",
+        "title": [
+          "检查补丁包"
+        ],
+        "description": [
+          "核对文件是否存在，并比对发布清单中的 SHA256。"
+        ],
+        "commands": [
+          {
+            "id": "package-info",
+            "text": [
+              "Get-Item -LiteralPath '",
+              {
+                "parameterId": "packagePath"
+              },
+              "'"
+            ]
+          },
+          {
+            "id": "package-hash",
+            "text": [
+              "Get-FileHash -LiteralPath '",
+              {
+                "parameterId": "packagePath"
+              },
+              "' -Algorithm SHA256"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s3-backup",
+        "title": [
+          "确认已有可用备份"
+        ],
+        "description": [
+          "在外部工具完成备份，并确认恢复方式。\n当前目录：",
+          {
+            "parameterId": "targetDir"
+          }
+        ],
+        "commands": []
+      },
+      {
+        "id": "s4-apply",
+        "title": [
+          "在外部工具应用补丁"
+        ],
+        "description": [
+          "将 ",
+          {
+            "parameterId": "version"
+          },
+          " 应用到 ",
+          {
+            "parameterId": "environment"
+          },
+          "。\n此步骤中的 Demo-PatchTool 为虚构示例工具。"
+        ],
+        "commands": [
+          {
+            "id": "apply-patch",
+            "text": [
+              "Demo-PatchTool apply --package \"",
+              {
+                "parameterId": "packagePath"
+              },
+              "\" --target \"",
+              {
+                "parameterId": "targetDir"
+              },
+              "\" --version \"",
+              {
+                "parameterId": "version"
+              },
+              "\""
+            ]
+          }
+        ]
+      },
+      {
+        "id": "s5-verify",
+        "title": [
+          "核对 ",
+          {
+            "parameterId": "environment"
+          },
+          " 的维护结果"
+        ],
+        "description": [
+          "核对版本为 ",
+          {
+            "parameterId": "version"
+          },
+          "，检查服务状态及业务抽查结果。\n按需添加评论和截图，完成后实例仍保留在当前列表，手动归档后移到归档列表。"
+        ],
+        "commands": [
+          {
+            "id": "read-version",
+            "text": [
+              "Get-Content -LiteralPath '",
+              {
+                "parameterId": "targetDir"
+              },
+              "\\VERSION.txt'"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "parameterValues": {
+    "environment": "演示环境 A",
+    "version": "0.1.1",
+    "packagePath": "C:\\RunbookDemo\\packages\\patch-0.1.1-repacked.zip",
+    "targetDir": "C:\\RunbookDemo\\service"
+  },
+  "entries": [
+    {
+      "id": "r1",
+      "stepId": "s1-target",
+      "at": "2026-10-20T01:01:00Z",
+      "type": "result",
+      "outcome": "completed",
+      "reason": null,
+      "snapshot": {
+        "title": "核对 演示环境 A 的维护目标",
+        "description": "目标版本：0.1.1\n确认维护范围、维护窗口和人工审批。",
+        "commands": [],
+        "parameterValues": {
+          "environment": "演示环境 A",
+          "version": "0.1.1",
+          "packagePath": "C:\\RunbookDemo\\packages\\patch-0.1.1.zip",
+          "targetDir": "C:\\RunbookDemo\\service"
+        }
+      }
+    },
+    {
+      "id": "r2-failed",
+      "stepId": "s2-package",
+      "at": "2026-10-20T01:02:00Z",
+      "type": "result",
+      "outcome": "failed",
+      "reason": "补丁包 SHA256 与发布清单不一致。",
+      "snapshot": {
+        "title": "检查补丁包",
+        "description": "核对文件是否存在，并比对发布清单中的 SHA256。",
+        "commands": [
+          {
+            "id": "package-info",
+            "text": "Get-Item -LiteralPath 'C:\\RunbookDemo\\packages\\patch-0.1.1.zip'"
+          },
+          {
+            "id": "package-hash",
+            "text": "Get-FileHash -LiteralPath 'C:\\RunbookDemo\\packages\\patch-0.1.1.zip' -Algorithm SHA256"
+          }
+        ],
+        "parameterValues": {
+          "environment": "演示环境 A",
+          "version": "0.1.1",
+          "packagePath": "C:\\RunbookDemo\\packages\\patch-0.1.1.zip",
+          "targetDir": "C:\\RunbookDemo\\service"
+        }
+      }
+    },
+    {
+      "id": "c1",
+      "stepId": "s2-package",
+      "at": "2026-10-20T01:03:00Z",
+      "type": "comment",
+      "text": "已重新取得补丁包，准备更新本次包路径。",
+      "editedAt": null
+    },
+    {
+      "id": "img1",
+      "stepId": "s2-package",
+      "at": "2026-10-20T01:03:30Z",
+      "type": "image",
+      "path": "images/package-check-demo.png",
+      "mediaType": "image/png",
+      "caption": "占位图，仅用于验证图片随存档传递，不是真实截图。"
+    },
+    {
+      "id": "r2-completed",
+      "stepId": "s2-package",
+      "at": "2026-10-20T01:05:00Z",
+      "type": "result",
+      "outcome": "completed",
+      "reason": null,
+      "snapshot": {
+        "title": "检查补丁包",
+        "description": "核对文件是否存在，并比对发布清单中的 SHA256。",
+        "commands": [
+          {
+            "id": "package-info",
+            "text": "Get-Item -LiteralPath 'C:\\RunbookDemo\\packages\\patch-0.1.1-repacked.zip'"
+          },
+          {
+            "id": "package-hash",
+            "text": "Get-FileHash -LiteralPath 'C:\\RunbookDemo\\packages\\patch-0.1.1-repacked.zip' -Algorithm SHA256"
+          }
+        ],
+        "parameterValues": {
+          "environment": "演示环境 A",
+          "version": "0.1.1",
+          "packagePath": "C:\\RunbookDemo\\packages\\patch-0.1.1-repacked.zip",
+          "targetDir": "C:\\RunbookDemo\\service"
+        }
+      }
+    },
+    {
+      "id": "r3-skipped",
+      "stepId": "s3-backup",
+      "at": "2026-10-20T01:06:00Z",
+      "type": "result",
+      "outcome": "skipped",
+      "reason": "本次为虚构演练，不替换真实文件，无需备份；正式维护仍需核对备份。",
+      "snapshot": {
+        "title": "确认已有可用备份",
+        "description": "在外部工具完成备份，并确认恢复方式。\n当前目录：C:\\RunbookDemo\\service",
+        "commands": [],
+        "parameterValues": {
+          "environment": "演示环境 A",
+          "version": "0.1.1",
+          "packagePath": "C:\\RunbookDemo\\packages\\patch-0.1.1-repacked.zip",
+          "targetDir": "C:\\RunbookDemo\\service"
+        }
+      }
+    },
+    {
+      "id": "r4",
+      "stepId": "s4-apply",
+      "at": "2026-10-20T01:10:00Z",
+      "type": "result",
+      "outcome": "completed",
+      "reason": null,
+      "snapshot": {
+        "title": "在外部工具应用补丁",
+        "description": "将 0.1.1 应用到 演示环境 A。\n此步骤中的 Demo-PatchTool 为虚构示例工具。",
+        "commands": [
+          {
+            "id": "apply-patch",
+            "text": "Demo-PatchTool apply --package \"C:\\RunbookDemo\\packages\\patch-0.1.1-repacked.zip\" --target \"C:\\RunbookDemo\\service\" --version \"0.1.1\""
+          }
+        ],
+        "parameterValues": {
+          "environment": "演示环境 A",
+          "version": "0.1.1",
+          "packagePath": "C:\\RunbookDemo\\packages\\patch-0.1.1-repacked.zip",
+          "targetDir": "C:\\RunbookDemo\\service"
+        }
+      }
+    },
+    {
+      "id": "r5",
+      "stepId": "s5-verify",
+      "at": "2026-10-20T01:15:00Z",
+      "type": "result",
+      "outcome": "completed",
+      "reason": null,
+      "snapshot": {
+        "title": "核对 演示环境 A 的维护结果",
+        "description": "核对版本为 0.1.1，检查服务状态及业务抽查结果。\n按需添加评论和截图，完成后实例仍保留在当前列表，手动归档后移到归档列表。",
+        "commands": [
+          {
+            "id": "read-version",
+            "text": "Get-Content -LiteralPath 'C:\\RunbookDemo\\service\\VERSION.txt'"
+          }
+        ],
+        "parameterValues": {
+          "environment": "演示环境 A",
+          "version": "0.1.1",
+          "packagePath": "C:\\RunbookDemo\\packages\\patch-0.1.1-repacked.zip",
+          "targetDir": "C:\\RunbookDemo\\service"
+        }
+      }
+    },
+    {
+      "id": "c2-after-archive",
+      "stepId": "s5-verify",
+      "at": "2026-10-20T01:25:00Z",
+      "type": "comment",
+      "text": "归档后补充：演练验收结论已整理。",
+      "editedAt": null
+    }
+  ]
+}

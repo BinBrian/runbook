@@ -1,0 +1,17 @@
+.variable-filter-summary { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 9px 22px; border-bottom: 1px solid var(--border); background: var(--surface-raised, var(--surface)); font-size: 12px; }
+.variable-filter-summary strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.variable-filter-summary > span { color: var(--text-muted); white-space: nowrap; }
+.variable-filter-summary button { margin-left: auto; white-space: nowrap; }
+.command-pending-values { padding: 10px 12px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); color: var(--variable-attention); font-size: 12px; }
+.command-pending-values > strong { display: block; font-weight: 500; margin-bottom: 6px; }
+.command-pending-value { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; overflow-wrap: anywhere; }
+.command-pending-value code { white-space: pre-wrap; }
+.command-pending-value button { color: var(--accent); }
+.current-step-actions { flex: 0 0 auto; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 10px 20px; border-top: 1px solid var(--border); background: var(--surface-raised, var(--surface)); }
+.current-step-actions-title { display: flex; flex: 1 1 160px; flex-direction: column; min-width: 0; gap: 3px; }
+.current-step-actions-title small { font-size: 11px; color: var(--text-muted); }
+.current-step-actions-title strong { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.current-step-actions-buttons { display: flex; align-items: center; gap: 8px; }
+.start-panel.pending-parameters-panel { border-color: var(--variable-attention); }
+.step-select-toggle:disabled { opacity: 1; cursor: default; }
+@media (max-width: 1000px) { .current-step-actions { padding: 8px 12px; } .variable-filter-summary { padding: 8px 12px; flex-wrap: wrap; gap: 5px 8px; } }

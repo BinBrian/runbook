@@ -1,0 +1,65 @@
+以下为虚构演示数据；环境、区服、玩家及账号标识不对应实际业务。命令仅为演示文本。
+============================维护流程==============================
+前一天:
+maintain release GameServer 2026-10-14-08-00 2026-10-14-09-00
+在大群截图通知
+第二天:
+等待备份完成(如有)
+confirmclose release GameServer
+在大群通知：服务器停服，开始处理转区
+stopserver release Common
+copybranch preview release
+publishgame release
+stopserver release Base
+syncgame release all
+confirmclose release all
+
+玩家转区(如有)
+transferserver env
+	target	玩家所在区服的districtno
+	newdistrict	玩家转区后的districtno
+	playerid	玩家ID
+	passcardid	平台账号ID
+
+通知是用playerid
+
+transferserver release 9001001 9001002 9002001 9003001 checktransfer
+transferserver release 9001001 9001002 9002001 9003001 exportplayer
+transferserver release 9001001 9001002 9002001 9003001 importplayer
+transferserver release 9001001 9001002 9002001 9003001 refreshrole
+transferserver release 9001001 9001002 9002001 9003001 deletesourceplayer
+transferserver release 9001001 9001002 9002001 9003001 removerank
+
+在大群通知：9002001 操作结束，克隆进内服检查
+
+transferserver release 9001003 9001001 9002002 9003002 checktransfer
+transferserver release 9001003 9001001 9002002 9003002 exportplayer
+transferserver release 9001003 9001001 9002002 9003002 importplayer
+transferserver release 9001003 9001001 9002002 9003002 refreshrole
+transferserver release 9001003 9001001 9002002 9003002 deletesourceplayer
+transferserver release 9001003 9001001 9002002 9003002 removerank
+
+在大群通知：9002002 操作结束，克隆进内服检查
+
+transferserver release 9001003 9001001 9002003 9003003 checktransfer
+transferserver release 9001003 9001001 9002003 9003003 exportplayer
+transferserver release 9001003 9001001 9002003 9003003 importplayer
+transferserver release 9001003 9001001 9002003 9003003 refreshrole
+transferserver release 9001003 9001001 9002003 9003003 deletesourceplayer
+transferserver release 9001003 9001001 9002003 9003003 removerank
+
+在大群通知：9002003 操作结束，克隆进内服检查
+
+等待测试完全角色克隆，再起服
+---
+
+startserver release all
+在大群通知：服务器起服，限制白名单账号登录
+
+启动完成后，日志检查所有服务注册（关键字ProxyService.Allready）、Player服务就绪（关键字PlayerService.Allready）
+
+合服操作(如有)
+
+测试完成后通知值班同事：发送维护邮件
+更新重启内部测试环境和示例环境A（sandboxa）
+邮件发送完成后开放登录:allowlogin release all

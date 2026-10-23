@@ -1,0 +1,101 @@
+/* Shared roles: components consume these names in either appearance. */
+:root {
+  color-scheme: light;
+  --surface: #ffffff;
+  --surface-panel: #fafafa;
+  --surface-subtle: #f4f4f5;
+  --surface-hover: #ededf0;
+  --surface-raised: #ffffff;
+  --surface-input: #ffffff;
+  --text: #232427;
+  --text-secondary: #60636a;
+  --text-muted: #70737b;
+  --text-placeholder: #6c6f76;
+  --text-disabled: #8b8e95;
+  --line: #e3e3e6;
+  --border: #d6d7dc;
+  --border-hover: #b7bac2;
+  --accent: #2864ce;
+  --accent-hover: #2055b5;
+  --accent-pressed: #19499e;
+  --accent-text: #ffffff;
+  --accent-soft: #edf3fe;
+  --accent-border: #b5cdf6;
+  --focus-shadow: #2864ce24;
+  --selection: #cadcff;
+  --variable-global: var(--text);
+  --variable-local: var(--text);
+  --variable-attention: #a94b08;
+  --variable-attention-soft: #fff4e8;
+  --variable-attention-border: #e7bd91;
+  --success: #25734e;
+  --status-on-fill: #ffffff;
+  --success-soft: #eef7f1;
+  --success-border: #b9dac6;
+  --warning: #88600f;
+  --warning-soft: #fcf6e8;
+  --warning-border: #e8d6a8;
+  --failure: #b83c43;
+  --failure-soft: #fff1f1;
+  --failure-border: #edc0c3;
+  --danger-fill: #b83c43;
+  --danger-hover: #9f3037;
+  --danger-text: #ffffff;
+  --scroll-thumb: #c6c7cc;
+  --overlay: #00000066;
+  --image-overlay: #000000cc;
+  --shadow: #00000018;
+  --shadow-strong: #00000026;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #1c1c1c;
+  --surface-panel: #202020;
+  --surface-subtle: #282828;
+  --surface-hover: #323232;
+  --surface-raised: #252525;
+  --surface-input: #242424;
+  --text: #eeeeef;
+  --text-secondary: #bcbcc2;
+  --text-muted: #acacb3;
+  --text-placeholder: #a0a0a8;
+  --text-disabled: #7e7e86;
+  --line: #353535;
+  --border: #47474c;
+  --border-hover: #686870;
+  --accent: #9dbbff;
+  --accent-hover: #b3cbff;
+  --accent-pressed: #8aabf3;
+  --accent-text: #142343;
+  --accent-soft: #252f45;
+  --accent-border: #536d9b;
+  --focus-shadow: #9dbbff30;
+  --selection: #3b527f;
+  --variable-global: var(--text);
+  --variable-local: var(--text);
+  --variable-attention: #f2b56b;
+  --variable-attention-soft: #382b20;
+  --variable-attention-border: #84603b;
+  --success: #86d4a5;
+  --status-on-fill: #1c1c1c;
+  --success-soft: #202f26;
+  --success-border: #3f6650;
+  --warning: #e9c16f;
+  --warning-soft: #352e20;
+  --warning-border: #6f5d37;
+  --failure: #f3a0a5;
+  --failure-soft: #382629;
+  --failure-border: #78454b;
+  --danger-fill: #b83c43;
+  --danger-hover: #cd4b52;
+  --danger-text: #ffffff;
+  --scroll-thumb: #57575c;
+  --overlay: #0000008c;
+  --image-overlay: #000000dd;
+  --shadow: #00000040;
+  --shadow-strong: #00000066;
+}
+
+.theme-switcher.icon-button{flex-shrink:0;width:30px;height:30px;color:var(--text-secondary)}
+@media(max-width:850px){.topbar-right .save-state{display:none}}

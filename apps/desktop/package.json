@@ -1,0 +1,11 @@
+{
+  "name": "@runbook/desktop", "version": "0.1.0", "private": true, "type": "module",
+  "scripts": { "dev": "node ../../scripts/web.mjs --host 127.0.0.1", "build": "node ../../scripts/web.mjs build" },
+  "dependencies": {
+    "@runbook/contracts": "workspace:*", "@runbook/desktop-api": "workspace:*",
+    "@runbook/editor": "workspace:*", "@runbook/ui": "workspace:*",
+    "@tauri-apps/api": "^2.9.0", "react": "^19.2.0", "react-dom": "^19.2.0",
+    "lucide-react": "^0.468.0", "react-markdown": "^10.1.0", "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": { "vite": "^7.1.7", "@vitejs/plugin-react": "^5.0.4", "tailwindcss": "^4.1.14", "@tailwindcss/vite": "^4.1.14" }
+}
