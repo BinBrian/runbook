@@ -69,8 +69,9 @@ async function editorFor(id, label = '命令 1', instance = false) {
 }
 async function expectOptions(expected) {
   await expect(menu()).toBeVisible(); await expect(menu()).toHaveAttribute('data-slash-menu', /.+|^$/);
-  await expect(menu().getByRole('option')).toHaveCount(expected.length);
-  assert.deepEqual((await menu().getByRole('option').evaluateAll(elements => elements.map(element => element.dataset.parameterId))).sort(), [...expected].sort());
+  const existing = menu().locator('[role="option"][data-parameter-id]');
+  await expect(existing).toHaveCount(expected.length);
+  assert.deepEqual((await existing.evaluateAll(elements => elements.map(element => element.dataset.parameterId))).sort(), [...expected].sort());
 }
 async function chosen(id, editor) {
   await expect(actualOption(id)).toHaveAttribute('aria-selected', 'true');
@@ -202,8 +203,10 @@ try {
   }
   await editor.fill('PASTE '); await paste(editor, '{{Env'); await expect(menu()).toHaveCount(0);
   await saved(async () => strings(parts((await template()).document, 'slash-a-first')) === 'PASTE {{Env');
-  await editor.fill('EMPTY '); await typeQuery(editor, '{{ZZZ-NO-VARIABLE'); await expectOptions([]); await editor.press('Enter');
-  await expect(menu()).toHaveCount(0); await saved(async () => strings(parts((await template()).document, 'slash-a-first')) === 'EMPTY {{ZZZ-NO-VARIABLE\n');
+  await editor.fill('EMPTY '); await typeQuery(editor, '{{ZZZ-NO-VARIABLE'); await expectOptions([]);
+  await expect(menu().getByRole('option').filter({ hasText: '创建' })).toContainText('ZZZ-NO-VARIABLE');
+  await editor.press('Escape'); await expect(menu()).toHaveCount(0);
+  await saved(async () => strings(parts((await template()).document, 'slash-a-first')) === 'EMPTY {{ZZZ-NO-VARIABLE');
   await editor.fill('ESC '); await typeQuery(editor, '{{Env');
   await saved(async () => strings(parts((await template()).document, 'slash-a-first')) === 'ESC {{Env');
   const beforeEscape = await workspace(); await editor.press('Escape'); await expect(menu()).toHaveCount(0); assert.deepEqual(await workspace(), beforeEscape);
@@ -224,7 +227,7 @@ try {
   assert.equal(composing.composing, true); assert.equal(composing.prevented, false);
   await saved(async () => strings(parts((await template()).document, 'slash-a-first')) === 'IME {{Env');
   assert.equal(references(parts((await template()).document, 'slash-a-first')), 0); await editor.press('Escape'); await expect(editor).toBeVisible();
-  checks.push('Existing focused text, paste, URLs and word paths never open suggestions; query terminators including closing braces, no-match Enter, caret movement, selection and Escape retain literal text and close the query; selection toolbar still works and a synthetic composing Enter cannot accept a candidate');
+  checks.push('Existing focused text, paste, URLs and word paths never open suggestions; query terminators, caret movement, selection and Escape preserve literal text; unmatched queries offer creation and Escape cancels it; selection toolbar still works and a synthetic composing Enter cannot accept a candidate. Direct Enter creation is exercised by smoke-variable-management.mjs');
 
   await editor.fill('FIELD '); await typeQuery(editor, '{{Env');
   await saved(async () => strings(parts((await template()).document, 'slash-a-first')) === 'FIELD {{Env');

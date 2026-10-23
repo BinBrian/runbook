@@ -120,3 +120,18 @@
 .variable-panel.is-narrow>.variable-panel-scroll{padding-left:10px;padding-right:8px}
 .variable-panel.is-narrow>header{min-height:46px;padding:9px 12px}
 .workspace-with-navigation:has(>.variable-panel.is-narrow) .document-column{padding-right:28px}
+
+.variable-select-checkbox{flex:0 0 14px;width:14px;height:14px;margin:0 3px 0 0;accent-color:var(--accent);cursor:pointer}
+.variable-select-checkbox:disabled{cursor:not-allowed;opacity:.45}
+.variable-tree-leaf:has(>.variable-select-checkbox:disabled) .variable-tree-name{opacity:.5}
+.variable-selection-toolbar{position:sticky;top:0;z-index:2;padding:8px 3px 10px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line);background:var(--surface-panel);font-size:12px}
+.variable-selection-toolbar>div{display:flex;align-items:center;gap:10px}
+.variable-selection-toolbar>div>span{flex:1;color:var(--text)}
+.variable-selection-toolbar>.button{align-self:flex-start}
+.variable-selection-toolbar>small{font-size:10px;color:var(--text-secondary)}
+.variable-delete-backdrop{z-index:120}
+.variable-delete-list{margin:14px 0 0;padding:0;list-style:none;max-height:35vh;overflow:auto}
+.variable-delete-list>li{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.variable-delete-list strong{font-weight:500;color:var(--text);min-width:0}
+.variable-delete-list span{color:var(--text-secondary);min-width:0;text-align:right}
+.variable-delete-warning{color:var(--variable-attention);margin-top:8px}

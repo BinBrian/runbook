@@ -7,6 +7,8 @@ import { useVariableEditing, isVariableEditingSurface, type VariableLookup } fro
 import { useExplicitDraft } from './ui-hooks';
 import { api } from './api';
 import { VariableMenu } from './VariableMenu';
+import { VariableDeleteDialog } from './VariableDeleteDialog';
+import { deleteParameters, promoteParameter } from './variable-mutations';
 import { matchingVariableIds, variableBranches, variableHistory, type VariableBranch } from './variable-tree';
 import { readPanelPreference, savePanelPreference, VARIABLE_PANEL_NARROW_QUERY } from './panel-preferences';
 import './variable-panel.css';
@@ -64,6 +66,10 @@ export function VariablePanel({ document, stepId, onLocateStep, instance, draftV
   const [valueEditId, setValueEditId] = useState<string | null>(null);
   function finishValueEdit(id: string) { setValueEditId(null); requestAnimationFrame(() => panel.current?.querySelector<HTMLElement>('[data-variable-id="' + CSS.escape(id) + '"] [data-variable-name]')?.focus({ preventScroll: true })); }
   const [error, setError] = useState('');
+  const [selecting, setSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deletingIds, setDeletingIds] = useState<Set<string> | null>(null);
+  const [deleteError, setDeleteError] = useState('');
   const [copyStatus, setCopyStatus] = useState('');
   const [copying, setCopying] = useState(false);
   const copyingReference = useRef(false);
@@ -156,6 +162,13 @@ export function VariablePanel({ document, stepId, onLocateStep, instance, draftV
   function reveal(parameter: Parameter) { setCollapsed(previous => { const next = new Set(previous); if (parameter.ownerId) { next.delete(parameter.ownerId); const owned = document.steps.find(step => step.id === parameter.ownerId); if (owned?.groupId) next.delete(owned.groupId); } return next; }); }
   function ownerExists(ownerId?: string) { return ownerId ? document.steps.some(item => item.id === ownerId) || Boolean(document.groups?.some(item => item.id === ownerId)) : allowGlobal; }
   function definitionMutable(parameter: Parameter) { return Boolean(edit && !parameterFrozen(parameter) && (canEditDefinition?.(parameter) ?? !instance)); }
+  // Management follows the document's lock, not the historical step being read.
+  function managementMutable(parameter: Parameter) { return Boolean(edit && (canEditDefinition?.(parameter) ?? !instance)); }
+  function effectiveValue(parameter: Parameter) { return instance?.parameterValues[parameter.id] ?? parameter.defaultValue; }
+  function deletionReason(parameter: Parameter) {
+    if (!managementMutable(parameter)) return '已推进或结束的参数定义只读';
+    return undefined;
+  }
   function valueMutable(parameter: Parameter) { return Boolean(instance && !parameterFrozen(parameter) && onValueChange && canEditValue?.(parameter)); }
   function canAdd(ownerId?: string) { return Boolean(edit && !scopeFrozen(ownerId) && ownerExists(ownerId) && (canAddScope?.(ownerId) ?? !instance)); }
   function currentValue(parameter: Parameter) { const history = historyFor(parameter); return history ? history.snapshot.parameterValues[parameter.id] ?? '' : draftValues?.[parameter.id] ?? instance?.parameterValues[parameter.id] ?? parameter.defaultValue; }
@@ -200,11 +213,30 @@ export function VariablePanel({ document, stepId, onLocateStep, instance, draftV
     } catch (reason) { setFormError(reason instanceof Error ? reason.message : String(reason)); }
     finally { saving.current = false; }
   }
-  function deleteParameter(parameter: Parameter) {
-    if (!edit || busy || saving.current || form || !definitionMutable(parameter) || referenced.has(parameter.id)) return;
+  function startSelecting() {
+    if (!edit || busy || form) return;
+    setSelecting(true); setSelectedIds(new Set()); setValueEditId(null); setCollapsed(new Set()); setError('');
+  }
+  function stopSelecting() { setSelecting(false); setSelectedIds(new Set()); }
+  function toggleSelected(id: string) { setSelectedIds(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; }); }
+  function requestDelete(ids: Set<string>) {
+    if (!edit || busy || saving.current || form || !ids.size) return;
+    setDeleteError(''); setDeletingIds(new Set(ids));
+  }
+  function confirmDelete() {
+    if (!edit || busy || saving.current || form || !deletingIds) return;
     try {
-      edit(doc => { const latest = doc.parameters.find(item => item.id === parameter.id); if (!latest || !definitionMutable(latest) || referencedParameterIds(doc).has(parameter.id)) throw new Error('变量已被使用或不可修改，不能删除。'); return { ...doc, parameters: doc.parameters.filter(item => item.id !== parameter.id) }; });
-      setError('');
+      edit(doc => deleteParameters(doc, deletingIds, Object.fromEntries(doc.parameters.map(p => [p.id, effectiveValue(p)])), new Set(doc.parameters.filter(managementMutable).map(p => p.id))));
+      setDeletingIds(null); stopSelecting(); setValueEditId(null); setError('');
+      setSelectedVariableId(null); setRevealedParameterId(null); setRetainedTreeIds(null); clearSearch();
+      editing?.setTarget(null);
+    } catch (reason) { setDeleteError(reason instanceof Error ? reason.message : String(reason)); }
+  }
+  function promote(parameter: Parameter) {
+    if (!edit || busy || saving.current || form || !allowGlobal || !parameter.ownerId) return;
+    try {
+      edit(doc => promoteParameter(doc, parameter.id, new Set(doc.parameters.filter(managementMutable).map(p => p.id))));
+      setSelectedVariableId(parameter.id); setRevealedParameterId(parameter.id); setError('');
     } catch (reason) { setError(reason instanceof Error ? reason.message : String(reason)); }
   }
   function focusWithinPanel(element: HTMLElement) {
@@ -269,6 +301,19 @@ export function VariablePanel({ document, stepId, onLocateStep, instance, draftV
   const matchedIds = searchState?.keepTree && retainedTreeIds ? retainedTreeIds : matchingVariableIds(document, query, displayedValues, searchState?.parameterId);
   function matches(parameter: Parameter) { return matchedIds.has(parameter.id) || focusedValueId === parameter.id || revealedParameterId === parameter.id; }
   const matchCount = document.parameters.filter(matches).length;
+  const deletableMatches = document.parameters.filter(parameter => matches(parameter) && !deletionReason(parameter));
+  const allMatchesSelected = deletableMatches.length > 0 && deletableMatches.every(parameter => selectedIds.has(parameter.id));
+  const deletableSignature = JSON.stringify(document.parameters.filter(parameter => !deletionReason(parameter)).map(parameter => parameter.id));
+  useEffect(() => {
+    const eligible = new Set<string>(JSON.parse(deletableSignature));
+    setSelectedIds(previous => [...previous].some(id => !eligible.has(id)) ? new Set([...previous].filter(id => eligible.has(id))) : previous);
+  }, [deletableSignature]);
+  function selectAllMatches() {
+    setSelectedIds(previous => { const next = new Set(previous); for (const parameter of deletableMatches) { if (allMatchesSelected) next.delete(parameter.id); else next.add(parameter.id); } return next; });
+  }
+  const deleting = document.parameters.filter(parameter => deletingIds?.has(parameter.id));
+  const deleteReferenceCount = document.steps.reduce((count, step) => count + [step.title, step.description, ...step.commands.map(command => command.text)].flat().filter(part => typeof part !== 'string' && deletingIds?.has(part.parameterId)).length, 0);
+  const emptyDeleteReferenceCount = document.steps.reduce((count, step) => count + [step.title, step.description, ...step.commands.map(command => command.text)].flat().filter(part => typeof part !== 'string' && deleting.some(parameter => parameter.id === part.parameterId && !effectiveValue(parameter).trim())).length, 0);
   const branches = variableBranches(document, displayedValues);
   useEffect(() => { if (!searchState?.keepTree && (query.trim() || searchState?.parameterId)) setCollapsed(new Set()); }, [query, searchState?.parameterId, searchState?.keepTree]);
   function findReferences(parameter: Parameter) {
@@ -276,7 +321,7 @@ export function VariablePanel({ document, stepId, onLocateStep, instance, draftV
     setRevealedParameterId(null); setSelectedVariableId(parameter.id); onFindReferences?.(parameter.id, false);
   }
   const footer = error || (form ? '变量定义尚未提交' : copyStatus);
-  function addItem(section: ScopeSection) { return { label: section.key === 'global' ? '新增全局变量' : section.key === 'group' ? '新增步骤组变量' : '新增步骤变量', disabled: busy || !canAdd(section.ownerId) || Boolean(form), reason: form ? '先保存或取消当前定义表单' : !canAdd(section.ownerId) ? '此范围不可新增变量' : undefined, action: (trigger: HTMLButtonElement) => showForm({ kind: 'add', id: uid(), ownerId: section.ownerId, ownerLabel: section.owner, name: '', description: '', defaultValue: '' }, trigger) }; }
+  function addItem(section: ScopeSection) { return { label: section.key === 'global' ? '新增全局变量' : section.key === 'group' ? '新增步骤组变量' : '新增步骤变量', disabled: busy || selecting || !canAdd(section.ownerId) || Boolean(form), reason: selecting ? '先结束多选' : form ? '先保存或取消当前定义表单' : !canAdd(section.ownerId) ? '此范围不可新增变量' : undefined, action: (trigger: HTMLButtonElement) => showForm({ kind: 'add', id: uid(), ownerId: section.ownerId, ownerLabel: section.owner, name: '', description: '', defaultValue: '' }, trigger) }; }
   function scopeActions(ownerId?: string) {
     const section = sections.find(s => s.ownerId === ownerId); if (!section || !section.parameters.some(pendingValue)) return null;
     const label = section.key === 'global' ? '应用全局参数' : section.key === 'group' ? '应用本组参数' : '应用本步骤参数';
@@ -289,18 +334,19 @@ export function VariablePanel({ document, stepId, onLocateStep, instance, draftV
     const section = sections.find(s => s.ownerId === parameter.ownerId)!;
     const parentGroup = section.key === 'step' ? document.groups?.find(g => g.id === document.steps.find(s => s.id === parameter.ownerId)?.groupId) : undefined;
     const scopeLabel = section.key === 'global' ? '全局 · 整个流程' : `${section.key === 'group' ? '步骤组' : '步骤'} · ${parentGroup ? (parentGroup.name.trim() || '未命名步骤组') + ' / ' : ''}${section.owner}`;
-    const deleteReason = !definitionEditable ? '已推进或结束的参数定义只读' : referenced.has(parameter.id) ? '变量正在被引用，不能删除' : form ? '请先保存或取消当前定义表单' : undefined;
+    const deleteReason = deletionReason(parameter) ?? (form ? '请先保存或取消当前定义表单' : undefined);
     return <div role="treeitem" aria-level={level} key={parameter.id} className="variable-panel-item variable-tree-leaf" data-variable-kind={parameter.ownerId ? 'local' : 'global'} data-variable-id={parameter.id} data-variable-missing={missing || undefined} data-variable-pending={pending || undefined} data-variable-highlighted={highlighted?.parameterId === parameter.id && highlighted.stepId === activeId} data-definition-readonly={!definitionEditable} data-selected={selectedVariableId === parameter.id} tabIndex={-1} onFocusCapture={() => setFocusedValueId(parameter.id)} onBlurCapture={event => { if (!isVariableEditingSurface(event.relatedTarget) && (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget))) setFocusedValueId(current => current === parameter.id ? null : current); }}>
-      <Braces className="variable-leaf-icon" size={12} aria-hidden="true" />
-      {instance && valueEditId === parameter.id && valueMutable(parameter) ? <><button type="button" data-variable-name className="variable-tree-name is-label-only" onClick={() => findReferences(parameter)}>{parameter.name}<span className="variable-tree-separator"> - </span></button><input autoFocus className="variable-tree-value" data-variable-value data-parameter-id={parameter.id} aria-label={parameter.name} value={currentValue(parameter)} placeholder="未填写" disabled={busy} onChange={event => onValueChange?.(parameter.id, event.target.value)} onKeyDown={event => { if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return; if (event.key === 'Enter' || event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); finishValueEdit(parameter.id); } }} onBlur={event => { if (!isVariableEditingSurface(event.relatedTarget)) setValueEditId(null); }} /></> : <button type="button" data-variable-name className="variable-tree-name" title={parameter.name + ' - ' + (currentValue(parameter) || '未填写')} aria-label={'选择变量 ' + parameter.name} onClick={() => { setValueEditId(null); findReferences(parameter); }} onDoubleClick={() => { setSelectedVariableId(parameter.id); if (valueMutable(parameter)) setValueEditId(parameter.id); }}><span>{parameter.name}</span><span className="variable-tree-separator"> - </span><span data-variable-value data-parameter-id={parameter.id} data-value-readonly={!valueMutable(parameter)} tabIndex={-1}>{currentValue(parameter) || '未填写'}</span></button>}
+      {selecting ? <input className="variable-select-checkbox" type="checkbox" aria-label={'选择变量 ' + parameter.name} title={deleteReason} aria-description={deleteReason} checked={selectedIds.has(parameter.id)} disabled={busy || Boolean(deleteReason)} onChange={() => toggleSelected(parameter.id)} /> : <Braces className="variable-leaf-icon" size={12} aria-hidden="true" />}
+      {instance && valueEditId === parameter.id && valueMutable(parameter) ? <><button type="button" data-variable-name className="variable-tree-name is-label-only" onClick={() => findReferences(parameter)}>{parameter.name}<span className="variable-tree-separator"> - </span></button><input autoFocus className="variable-tree-value" data-variable-value data-parameter-id={parameter.id} aria-label={parameter.name} value={currentValue(parameter)} placeholder="未填写" disabled={busy} onChange={event => onValueChange?.(parameter.id, event.target.value)} onKeyDown={event => { if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return; if (event.key === 'Enter' || event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); finishValueEdit(parameter.id); } }} onBlur={event => { if (!isVariableEditingSurface(event.relatedTarget)) setValueEditId(null); }} /></> : <button type="button" data-variable-name className="variable-tree-name" title={parameter.name + ' - ' + (currentValue(parameter) || '未填写')} aria-label={'选择变量 ' + parameter.name} onClick={() => { if (selecting) { if (!deleteReason) toggleSelected(parameter.id); return; } setValueEditId(null); findReferences(parameter); }} onDoubleClick={() => { if (selecting) return; setSelectedVariableId(parameter.id); if (valueMutable(parameter)) setValueEditId(parameter.id); }}><span>{parameter.name}</span><span className="variable-tree-separator"> - </span><span data-variable-value data-parameter-id={parameter.id} data-value-readonly={!valueMutable(parameter)} tabIndex={-1}>{currentValue(parameter) || '未填写'}</span></button>}
       {pending && <span className="variable-pending-dot" role="status" aria-label="未应用" title="未应用" />}
-      <VariableMenu label={'变量操作 ' + parameter.name} title={parameter.name} scope={scopeLabel} disabled={busy} items={[
+      {!selecting && <VariableMenu label={'变量操作 ' + parameter.name} title={parameter.name} scope={scopeLabel} disabled={busy} items={[
         { label: '查看引用', action: () => findReferences(parameter) },
         ...(valueMutable(parameter) ? [{ label: '修改本次值', action: () => { setSelectedVariableId(parameter.id); setValueEditId(parameter.id); } }] : []),
         { label: '复制变量引用', disabled: copying, action: () => void copyReference(parameter) },
         { label: '编辑定义与默认值', disabled: !definitionEditable || Boolean(form), reason: !definitionEditable ? '参数定义只读' : form ? '先保存或取消当前定义表单' : undefined, action: trigger => showForm({ kind: 'edit', id: parameter.id, ownerId: parameter.ownerId, ownerLabel: section.owner, name: parameter.name, description: parameter.description, defaultValue: parameter.defaultValue }, trigger) },
-        { label: '删除变量', disabled: Boolean(deleteReason), reason: deleteReason, danger: true, action: () => deleteParameter(parameter) },
-      ]} />
+        ...(parameter.ownerId && allowGlobal ? [{ label: '转为全局变量', disabled: !managementMutable(parameter) || Boolean(form), reason: !managementMutable(parameter) ? '已推进或结束的参数定义只读' : form ? '先保存或取消当前定义表单' : undefined, action: () => promote(parameter) }] : []),
+        { label: '删除变量', disabled: Boolean(deleteReason), reason: deleteReason, danger: true, action: () => requestDelete(new Set([parameter.id])) },
+      ]} />}
     </div>;
   }
   function renderBranch(branch: VariableBranch, level = 1): React.ReactNode {
@@ -316,14 +362,15 @@ export function VariablePanel({ document, stepId, onLocateStep, instance, draftV
   const pendingCount = attentionParameters.filter(parameter => effectiveDraftValue(parameter) !== (instance?.parameterValues[parameter.id] ?? parameter.defaultValue)).length;
   return <>{narrow && <div className="variable-panel-rail" data-variable-panel><button ref={launcher} className="variable-panel-launcher" type="button" aria-label="展开变量面板" aria-controls={panelId} aria-expanded={open} title={`变量：待填 ${missingCount}，未应用 ${pendingCount}`} onClick={() => userOpen(true)}><Braces size={17} /><strong>变量</strong><span className={missingCount ? 'has-attention' : undefined}>待填<b data-panel-missing-count>{missingCount}</b></span><span className={pendingCount ? 'has-attention' : undefined}>未应用<b data-panel-pending-count>{pendingCount}</b></span></button></div>}{narrow && open && <button className="variable-panel-backdrop" type="button" tabIndex={-1} aria-label="关闭变量面板并返回正文" onClick={() => userOpen(false)} />}
     <aside ref={panel} id={panelId} className={`variable-panel ${open ? 'is-open' : 'is-collapsed'}${narrow ? ' is-narrow' : ''}`} data-variable-panel data-variable-target-step-id={step?.id} role={narrow ? 'dialog' : undefined} aria-modal={narrow && open ? true : undefined} aria-label="变量面板">
-    <header><Braces size={17} />{open && <><strong>变量</strong><VariableMenu label="新增变量" add disabled={busy} items={sections.filter(s => s.key === 'global' || s.ownerId === step?.id || s.ownerId === group?.id).map(addItem)} /></>}<button className="icon-button" type="button" aria-label={open ? '收起变量面板' : '展开变量面板'} onClick={() => userOpen(!open)}>{open ? <ChevronsRight size={16} /> : <Braces size={17} />}</button></header>
+    <header><Braces size={17} />{open && <><strong>变量</strong><VariableMenu label="新增变量" add disabled={busy || selecting} items={sections.filter(s => s.key === 'global' || s.ownerId === step?.id || s.ownerId === group?.id).map(addItem)} /><VariableMenu label="变量管理" disabled={busy} items={[{ label: selecting ? '结束多选' : '批量删除变量', disabled: !selecting && (!edit || Boolean(form) || !document.parameters.some(parameter => !deletionReason(parameter))), reason: form ? '先保存或取消当前定义表单' : !document.parameters.some(parameter => !deletionReason(parameter)) ? '没有可删除的变量' : undefined, action: () => selecting ? stopSelecting() : startSelecting() }]} /></>}<button className="icon-button" type="button" aria-label={open ? '收起变量面板' : '展开变量面板'} onClick={() => userOpen(!open)}>{open ? <ChevronsRight size={16} /> : <Braces size={17} />}</button></header>
     {open && <><div className="variable-search"><div className="variable-search-field"><Search size={14} /><input type="search" aria-label="搜索变量" placeholder="搜索变量或值" value={query} onChange={event => { setFocusedValueId(null); setValueEditId(null); setQuery(event.target.value); }} onKeyDown={event => { if (event.key === 'Escape' && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); event.stopPropagation(); clearSearch(); } }} />{(query || searchState?.parameterId) && <span className="variable-search-count" role="status" data-variable-search-count aria-label={searchStepCount !== undefined ? searchStepCount + ' 个引用步骤' : matchCount + ' 个变量'}>{searchStepCount !== undefined ? searchStepCount + ' 步' : matchCount}</span>}{(query || searchState?.parameterId) && <button type="button" aria-label="清空变量搜索" onMouseDown={event => event.preventDefault()} onClick={clearSearch}><X size={13} /></button>}</div></div><div ref={scroll} className="variable-panel-scroll">
 
       {form && <form className="variable-definition-form" role="dialog" aria-label={form.kind === 'add' ? '新增变量' : '编辑变量定义'} onSubmit={event => { event.preventDefault(); saveForm(); }} onKeyDown={event => { if (event.key === 'Escape' && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); event.stopPropagation(); closeForm(); } }}><strong>{form.kind === 'add' ? '新增变量' : '编辑变量定义'}</strong><p className="variable-form-owner">所属：{form.ownerLabel}</p><label>变量名称<input ref={nameInput} aria-label="变量名称" value={form.name} readOnly={busy || !formAllowed} onChange={event => definitionDraft.update({ ...form, name: event.target.value })} /></label><label>变量说明<textarea aria-label="变量说明" rows={2} value={form.description} readOnly={busy || !formAllowed} onChange={event => definitionDraft.update({ ...form, description: event.target.value })} /></label><label>变量默认值<textarea ref={defaultInput} aria-label="变量默认值" rows={2} value={form.defaultValue} readOnly={busy || !formAllowed} onChange={event => definitionDraft.update({ ...form, defaultValue: event.target.value })} /></label>{(formError || invalidName || !formAllowed) && <p className="variable-form-error" role="status">{formError || invalidName || '原范围现在只读或不存在，表单已保留，请取消后查看。'}</p>}<div className="variable-form-actions"><button type="button" className="button small" disabled={busy} onClick={closeForm}>取消</button><button type="submit" className="button small primary" disabled={busy || !formAllowed || Boolean(invalidName)}>保存变量</button></div></form>}
+      {selecting && <div className="variable-selection-toolbar" data-variable-selection><div><span role="status">已选 {selectedIds.size} 个</span><button type="button" className="text-button" disabled={busy || !deletableMatches.length} onClick={selectAllMatches}>{allMatchesSelected ? '取消全选' : '全选'}</button><button type="button" className="text-button" onClick={stopSelecting}>取消</button></div><button type="button" className="button small danger" disabled={busy || !selectedIds.size} onClick={() => requestDelete(selectedIds)}>删除所选变量</button>{document.parameters.some(parameter => matches(parameter) && deletionReason(parameter)) && <small>灰色项不可删除，悬停查看原因</small>}</div>}
       <div role="tree" aria-label="工作变量" className="variable-tree" onKeyDown={event => { if (!(event.target instanceof HTMLButtonElement) || !event.target.matches('[data-variable-name],[data-variable-tree-toggle]')) return; if (!['ArrowDown','ArrowUp','Home','End'].includes(event.key)) return; const rows = [...event.currentTarget.querySelectorAll<HTMLButtonElement>('[data-variable-name],[data-variable-tree-toggle]')]; const at = rows.indexOf(event.target), next = event.key === 'Home' ? 0 : event.key === 'End' ? rows.length - 1 : Math.max(0, Math.min(rows.length - 1, at + (event.key === 'ArrowDown' ? 1 : -1))); event.preventDefault(); event.stopPropagation(); rows[next]?.focus(); }}>
         {allowGlobal && <section role="group" aria-label="全局变量" data-variable-scope="global" data-parameter-scope="global"><div className="variable-global-heading">全局</div>{globalParameters(document).map(parameter => renderVariable(parameter, 1))}{scopeActions()}</section>}
         {branches.map(branch => renderBranch(branch))}
       </div>{!matchCount && <p className="variable-panel-empty" role="status">{query ? '没有匹配变量' : '暂无变量'}</p>}
       </div>{footer && <div className="variable-panel-foot" role="status" data-variable-copy-status>{footer}</div>}</>}
-  </aside></>;
+  </aside>{deletingIds && <VariableDeleteDialog items={deleting.map(parameter => ({ id: parameter.id, name: parameter.name, scope: parameter.ownerId ? sections.find(section => section.ownerId === parameter.ownerId)?.owner ?? '局部' : '全局' }))} referenceCount={deleteReferenceCount} emptyReferenceCount={emptyDeleteReferenceCount} pendingCount={deleting.filter(parameter => draftValues?.[parameter.id] !== undefined && draftValues[parameter.id] !== effectiveValue(parameter)).length} error={deleteError} onCancel={() => { setDeletingIds(null); setDeleteError(''); }} onConfirm={confirmDelete} />}</>;
 }

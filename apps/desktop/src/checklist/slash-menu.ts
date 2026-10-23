@@ -18,6 +18,28 @@ export function filterSlashParameters(parameters: Parameter[], query: string): P
   return parameters.filter(parameter => parameter.name.toLocaleLowerCase().includes(search));
 }
 
+export interface VariableQueryScope { ownerId?: string; groupId?: string; allowGlobal?: boolean }
+export type VariableQueryOption = { kind: 'existing'; parameter: Parameter } | { kind: 'create'; name: string; ownerId?: string };
+
+/** A quick-created definition must be valid before the editor inserts its ID. */
+export function quickVariableName(query: string): string | null {
+  const name = query.trim();
+  if (!name || /[\0\r\n{}()\[\]]/u.test(query) || new TextEncoder().encode(name).length > 1024) return null;
+  return name;
+}
+
+export function variableQueryOptions(parameters: Parameter[], query: string, scope: VariableQueryScope): VariableQueryOption[] {
+  const visible = parameters.filter(parameter => !parameter.ownerId ? scope.allowGlobal !== false : parameter.ownerId === scope.ownerId || parameter.ownerId === scope.groupId);
+  const options: VariableQueryOption[] = filterSlashParameters(visible, query).map(parameter => ({ kind: 'existing', parameter }));
+  const name = quickVariableName(query);
+  if (!name || visible.some(parameter => parameter.name.toLocaleLowerCase() === name.toLocaleLowerCase())) return options;
+  // Work records default to the whole flow; favorites remain self-contained.
+  const ownerId = scope.allowGlobal === false ? scope.groupId ?? scope.ownerId : undefined;
+  if (scope.allowGlobal === false && !ownerId) return options;
+  options.push({ kind: 'create', name, ...(ownerId ? { ownerId } : {}) });
+  return options;
+}
+
 export interface VariableQueryRange { range: Range; caret: Range; query: string }
 function editablePrefix(element: HTMLDivElement, caret: Range) {
   let text = '';

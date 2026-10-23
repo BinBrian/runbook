@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { filterSlashParameters, parseVariablePrefix } from './slash-menu';
+import { filterSlashParameters, parseVariablePrefix, quickVariableName, variableQueryOptions } from './slash-menu';
 import type { Parameter } from './types';
 
 describe('double-brace variable query boundaries', () => {
@@ -87,5 +87,53 @@ describe('slash variable suggestions', () => {
     expect(filterSlashParameters(parameters, '环境').map(parameter => parameter.id)).toEqual(['group-env', 'step-env']);
     expect(filterSlashParameters(visible, '环境').map(parameter => parameter.id)).toEqual(['step-env']);
     expect(filterSlashParameters(visible, 'missing')).toEqual([]);
+  });
+});
+
+describe('variable quick creation', () => {
+  const global: Parameter = { id: 'environment-global', name: 'Environment', description: '', defaultValue: 'sandboxa' };
+  const local: Parameter = { id: 'target-local', name: '目标区服', description: '', defaultValue: '9001001', ownerId: 'group-a' };
+  const other: Parameter = { ...local, id: 'target-other', ownerId: 'group-b' };
+  const scope = { ownerId: 'step-a', groupId: 'group-a', allowGlobal: true };
+
+  it('offers a missing name as the first actionable option, defaulting work records to global', () => {
+    expect(variableQueryOptions([global, local], '版本号', scope)).toEqual([{ kind: 'create', name: '版本号' }]);
+    expect(variableQueryOptions([], '  版本号  ', scope)).toEqual([{ kind: 'create', name: '版本号' }]);
+    expect(variableQueryOptions([], '', scope)).toEqual([]);
+  });
+
+  it('keeps existing candidates first and exposes creation only for a different complete name', () => {
+    expect(variableQueryOptions([global, local], 'Env', scope)).toEqual([{ kind: 'existing', parameter: global }, { kind: 'create', name: 'Env' }]);
+    expect(variableQueryOptions([global, local], 'environment', scope)).toEqual([{ kind: 'existing', parameter: global }]);
+    expect(variableQueryOptions([global, local], '目标区服', scope)).toEqual([{ kind: 'existing', parameter: local }]);
+  });
+
+  it('checks exact matches only in the current visible scopes, never rebinding another group by name', () => {
+    expect(variableQueryOptions([other], '目标区服', scope)).toEqual([{ kind: 'create', name: '目标区服' }]);
+    const sameNamedGlobal = { ...local, id: 'target-global', ownerId: undefined };
+    expect(variableQueryOptions([sameNamedGlobal, local, other], '目标区服', scope)).toEqual([{ kind: 'existing', parameter: sameNamedGlobal }, { kind: 'existing', parameter: local }]);
+  });
+
+  it('keeps favorite creation local to its group or step and rejects an absent local scope', () => {
+    expect(variableQueryOptions([global], 'Environment', { ...scope, allowGlobal: false })).toEqual([{ kind: 'create', name: 'Environment', ownerId: 'group-a' }]);
+    expect(variableQueryOptions([], '版本号', { ownerId: 'step-a', allowGlobal: false })).toEqual([{ kind: 'create', name: '版本号', ownerId: 'step-a' }]);
+    expect(variableQueryOptions([], '版本号', { allowGlobal: false })).toEqual([]);
+  });
+
+  it('enforces the UTF-8 byte boundary rather than a character limit before creating any definition', () => {
+    expect(quickVariableName('a'.repeat(1024))).toHaveLength(1024);
+    expect(quickVariableName('a'.repeat(1025))).toBeNull();
+    expect(quickVariableName('中'.repeat(341) + 'a')).not.toBeNull();
+    expect(quickVariableName('中'.repeat(342))).toBeNull();
+    expect(quickVariableName('🔧'.repeat(256))).not.toBeNull();
+    expect(quickVariableName('🔧'.repeat(257))).toBeNull();
+  });
+
+  it('never offers quick creation for empty, multiline, NUL or bracketed names', () => {
+    for (const name of ['', '   ', '版本\0号', '版本\n号', '版本\r号', '\n版本', '版本\n', '版本{号', '版本}号', '版本(号', '版本)号', '版本[号', '版本]号']) {
+      expect(quickVariableName(name), JSON.stringify(name)).toBeNull();
+      expect(variableQueryOptions([], name, scope), JSON.stringify(name)).toEqual([]);
+    }
+    expect(quickVariableName('玩家🔧ID')).toBe('玩家🔧ID');
   });
 });

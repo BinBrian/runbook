@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Braces, Plus, X } from 'lucide-react';
 import type { Parameter, TextParts } from './types';
 import { isVariableEditingSurface, useVariableEditing, type VariableTarget } from './VariableEditing';
-import { filterSlashParameters, readVariableRange, slashMenuPosition, VARIABLE_QUERY_TRIGGER, type SlashPosition, type VariableQueryRange } from './slash-menu';
+import { quickVariableName, readVariableRange, slashMenuPosition, variableQueryOptions, VARIABLE_QUERY_TRIGGER, type SlashPosition, type VariableQueryOption, type VariableQueryRange, type VariableQueryScope } from './slash-menu';
 import { clipboardParameter, readVariableClipboard } from './variable-clipboard';
 import './selection-tools.css';
 import './slash-menu.css';
@@ -155,7 +155,7 @@ export function TextField(props: TextFieldProps) {
   const initialized = useRef(false);
   const lastPropValue = useRef<string | undefined>(undefined);
   const reusableParameters = parameters.filter(parameter => !parameter.ownerId ? allowGlobal : parameter.ownerId === ownerId || parameter.ownerId === groupId);
-  const slash = useRef<VariableQueryRange | null>(null);
+  const slash = useRef<(VariableQueryRange & { scope: VariableQueryScope }) | null>(null);
   const [slashQuery, setSlashQuery] = useState<string | null>(null);
   const [slashIndex, setSlashIndex] = useState(0);
   const [slashPosition, setSlashPosition] = useState<SlashPosition | null>(null);
@@ -165,10 +165,11 @@ export function TextField(props: TextFieldProps) {
   const compositionHasTrigger = useRef(false);
   const [slashComposing, setSlashComposing] = useState(false);
   const slashMenuId = `${key}-slash-menu`;
-  const slashCandidates = slashQuery === null ? [] : filterSlashParameters(reusableParameters, slashQuery);
-  const activeSlash = slashCandidates[Math.min(slashIndex, slashCandidates.length - 1)];
+  const slashOptions = slashQuery === null ? [] : variableQueryOptions(parameters, slashQuery, { ownerId, groupId, allowGlobal });
+  const activeSlash = slashOptions[Math.min(slashIndex, slashOptions.length - 1)];
   const slashVisible = slashQuery !== null && Boolean(slashPosition) && !slashComposing && !readOnly;
-  const slashOptionId = (parameter: Parameter) => `${key}-slash-option-${parameter.id}`;
+  const slashOptionId = (option: VariableQueryOption) => `${key}-slash-option-${option.kind === 'existing' ? `existing-${option.parameter.id}` : 'create'}`;
+  const activeSlashId = activeSlash ? slashOptionId(activeSlash) : undefined;
 
   function closeSlash() { slash.current = null; setSlashQuery(null); setSlashPosition(null); setSlashIndex(0); }
   function invalidate() { selection.current = null; setSelected(''); setMode(null); setGeometry(null); closeSlash(); bridgeRef.current?.clearTarget(key); }
@@ -206,14 +207,20 @@ export function TextField(props: TextFieldProps) {
     if (!next || (!slash.current && !allowStart)) { closeSlash(); return; }
     if (slash.current && next.range.compareBoundaryPoints(Range.START_TO_START, slash.current.range) !== 0 && !allowStart) { closeSlash(); return; }
     if (slash.current?.query !== next.query) setSlashIndex(0);
-    slash.current = next; setSlashQuery(next.query); setSelected(''); setMode(null); setGeometry(null);
+    const latest = current.current;
+    slash.current = { ...next, scope: { ownerId: latest.ownerId, groupId: latest.groupId, allowGlobal: latest.allowGlobal !== false } }; setSlashQuery(next.query); setSelected(''); setMode(null); setGeometry(null);
     updateSlashPosition.current();
   }
-  function acceptSlash(parameter: Parameter): boolean {
-    const session = slash.current, node = element.current, active = window.getSelection();
-    if (!session || !node || document.activeElement !== node || !active?.rangeCount || !validRange(node, session.range) || session.range.toString() !== `${VARIABLE_QUERY_TRIGGER}${session.query}` || !sameCaret(active.getRangeAt(0), session.caret) || !filterSlashParameters(current.current.parameters, session.query).some(item => item.id === parameter.id)) { closeSlash(); return false; }
+  function acceptSlash(option: VariableQueryOption): boolean {
+    const session = slash.current, node = element.current, active = window.getSelection(), latest = current.current;
+    if (!session || !node || latest.readOnly || composing.current || document.activeElement !== node || !active?.rangeCount || !validRange(node, session.range) || session.range.toString() !== `${VARIABLE_QUERY_TRIGGER}${session.query}` || !sameCaret(active.getRangeAt(0), session.caret) || session.scope.ownerId !== latest.ownerId || session.scope.groupId !== latest.groupId || session.scope.allowGlobal !== (latest.allowGlobal !== false)) { closeSlash(); return false; }
+    const fresh = readVariableRange(node, active.getRangeAt(0));
+    if (!fresh || fresh.query !== session.query || fresh.range.compareBoundaryPoints(Range.START_TO_START, session.range) !== 0) { closeSlash(); return false; }
+    const currentOption = variableQueryOptions(latest.parameters, session.query, latest).find(candidate => candidate.kind === option.kind && (candidate.kind === 'existing' && option.kind === 'existing' ? candidate.parameter.id === option.parameter.id : candidate.kind === 'create' && option.kind === 'create' && candidate.name === option.name && candidate.ownerId === option.ownerId));
+    if (!currentOption) { closeSlash(); return false; }
     selection.current = session.range.cloneRange();
-    return insert(parameter);
+    if (currentOption.kind === 'existing') return insert(currentOption.parameter);
+    return insert({ id: crypto.randomUUID(), name: currentOption.name, description: '', defaultValue: '', ...(currentOption.ownerId ? { ownerId: currentOption.ownerId } : {}) }, true);
   }
 
   function rememberSelection() {
@@ -254,7 +261,7 @@ export function TextField(props: TextFieldProps) {
   useEffect(() => {
     invalidate();
     return () => { selection.current = null; bridgeRef.current?.clearTarget(key); };
-  }, [ownerId, groupId, readOnly, key]);
+  }, [ownerId, groupId, allowGlobal, readOnly, key]);
   useEffect(() => {
     function externalFocus(event: globalThis.FocusEvent) {
       if (slash.current && !(event.target instanceof Node && (element.current?.contains(event.target) || slashElement.current?.contains(event.target)))) closeSlash();
@@ -288,7 +295,7 @@ export function TextField(props: TextFieldProps) {
     return () => { updateSlashPosition.current = () => {}; if (frame !== undefined) cancelAnimationFrame(frame); observer.disconnect(); document.removeEventListener('scroll', schedule, true); window.removeEventListener('resize', schedule); };
   // The first pass establishes visibility before the portal exists. Re-run
   // after its mount to measure the real height and observe future size changes.
-  }, [slashQuery, slashCandidates.length, readOnly, slashComposing, slashVisible]);
+  }, [slashQuery, slashOptions.length, readOnly, slashComposing, slashVisible]);
   useEffect(() => {
     if (slashQuery === null) return;
     function outside(event: PointerEvent) { if (!(event.target instanceof Node) || wrapper.current?.contains(event.target) || slashElement.current?.contains(event.target)) return; closeSlash(); }
@@ -296,14 +303,14 @@ export function TextField(props: TextFieldProps) {
     return () => document.removeEventListener('pointerdown', outside, true);
   }, [slashQuery]);
   useLayoutEffect(() => {
-    const menu = slashElement.current, parameter = activeSlash;
-    if (!menu || !parameter) return;
-    const option = [...menu.querySelectorAll<HTMLElement>('[role="option"]')].find(item => item.dataset.parameterId === parameter.id);
+    const menu = slashElement.current;
+    if (!menu || !activeSlashId) return;
+    const option = [...menu.querySelectorAll<HTMLElement>('[role="option"]')].find(item => item.id === activeSlashId);
     const list = menu.querySelector<HTMLElement>('.slash-menu-options');
     if (!option || !list) return;
     if (option.offsetTop < list.scrollTop) list.scrollTop = option.offsetTop;
     else if (option.offsetTop + option.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = option.offsetTop + option.offsetHeight - list.clientHeight;
-  }, [activeSlash?.id, slashVisible]);
+  }, [activeSlashId, slashVisible]);
 
   useLayoutEffect(() => {
     if (!selected || readOnly) { setGeometry(null); updatePosition.current = () => {}; return; }
@@ -379,7 +386,7 @@ export function TextField(props: TextFieldProps) {
     invalidate(); bridgeRef.current.locateVariable({ parameterId: parameter.id, stepId: latest.ownerId, trigger: token });
   }
   return <div ref={wrapper} className={`parts-field ${command ? 'is-command' : ''} ${singleLine ? 'is-title' : ''}`}>
-    <div ref={element} contentEditable={!readOnly} suppressContentEditableWarning role="textbox" aria-label={label} aria-multiline={!singleLine} aria-readonly={readOnly} aria-autocomplete="list" aria-haspopup="listbox" aria-expanded={slashVisible} aria-controls={slashVisible ? slashMenuId : undefined} aria-activedescendant={slashVisible && activeSlash ? slashOptionId(activeSlash) : undefined} className="parts-edit" data-placeholder={placeholder} data-parts-empty={value.every(part => typeof part === 'string' && part === '')}
+    <div ref={element} contentEditable={!readOnly} suppressContentEditableWarning role="textbox" aria-label={label} aria-multiline={!singleLine} aria-readonly={readOnly} aria-autocomplete="list" aria-haspopup="listbox" aria-expanded={slashVisible} aria-controls={slashVisible ? slashMenuId : undefined} aria-activedescendant={slashVisible ? activeSlashId : undefined} className="parts-edit" data-placeholder={placeholder} data-parts-empty={value.every(part => typeof part === 'string' && part === '')}
       onFocus={rememberSelection} onInput={event => {
         setPasteError('');
         emit();
@@ -396,11 +403,11 @@ export function TextField(props: TextFieldProps) {
       onBlur={event => { const next = event.relatedTarget; if (isVariableEditingSurface(next) || (next instanceof Node && wrapper.current?.contains(next))) return; invalidate(); props.onBlur?.(event); }}
       onKeyDown={event => {
         const token = clickedToken(event.target);
-        if (token && ['Enter', ' '].includes(event.key) && !event.nativeEvent.isComposing && !composing.current) { event.preventDefault(); event.stopPropagation(); locateToken(token); return; }
-        if (event.nativeEvent.isComposing || composing.current || readOnly) return;
+        if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229 || composing.current || readOnly) return;
+        if (token && ['Enter', ' '].includes(event.key)) { event.preventDefault(); event.stopPropagation(); locateToken(token); return; }
         if (slash.current) {
           if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeSlash(); return; }
-          if (slashVisible && slashCandidates.length && ['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) { event.preventDefault(); event.stopPropagation(); setSlashIndex(previous => event.key === 'Home' ? 0 : event.key === 'End' ? slashCandidates.length - 1 : (Math.min(previous, slashCandidates.length - 1) + (event.key === 'ArrowDown' ? 1 : -1) + slashCandidates.length) % slashCandidates.length); return; }
+          if (slashVisible && slashOptions.length && ['ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) { event.preventDefault(); event.stopPropagation(); setSlashIndex(previous => event.key === 'Home' ? 0 : event.key === 'End' ? slashOptions.length - 1 : (Math.min(previous, slashOptions.length - 1) + (event.key === 'ArrowDown' ? 1 : -1) + slashOptions.length) % slashOptions.length); return; }
           if ((event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) && slashVisible && activeSlash && !event.ctrlKey && !event.metaKey) { event.preventDefault(); event.stopPropagation(); acceptSlash(activeSlash); return; }
           if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', 'Enter', 'Tab'].includes(event.key)) closeSlash();
         }
@@ -435,8 +442,11 @@ export function TextField(props: TextFieldProps) {
     {pasteError && <p className="field-error" role="status" data-variable-paste-error>{pasteError}</p>}
     {slashVisible && slashPosition && createPortal(<div ref={slashElement} id={slashMenuId} className="slash-variable-menu" data-slash-menu data-slash-query={slashQuery} role="listbox" aria-label="变量建议" style={{ position: 'fixed', ...slashPosition }}>
       <div className="slash-menu-heading"><Braces size={14} /><strong>{slashQuery ? `筛选：${slashQuery}` : '选择已有变量'}</strong><small>按名称筛选</small></div>
-      <div className="slash-menu-options">{slashCandidates.length ? slashCandidates.map((parameter, index) => <button key={parameter.id} type="button" id={slashOptionId(parameter)} data-parameter-id={parameter.id} role="option" aria-selected={activeSlash?.id === parameter.id} tabIndex={-1} className="slash-variable-option" onMouseDown={event => event.preventDefault()} onMouseEnter={() => setSlashIndex(index)} onClick={() => acceptSlash(parameter)}><span><strong>{parameter.name}</strong><small>{!parameter.ownerId ? '全局' : parameter.ownerId === ownerId ? '本步骤' : '步骤组'}</small></span>{parameter.description && <span className="slash-option-description">{parameter.description}</span>}</button>) : <p className="slash-no-results" role="status">没有匹配的变量，原文会保留。</p>}</div>
-      <div className="slash-menu-hint">↑↓ 选择 · Enter / Tab 插入 · Esc 关闭</div>
+      <div className="slash-menu-options">{slashOptions.length ? slashOptions.map((option, index) => {
+        const parameter = option.kind === 'existing' ? option.parameter : option;
+        return <button key={slashOptionId(option)} type="button" id={slashOptionId(option)} data-parameter-id={option.kind === 'existing' ? option.parameter.id : undefined} data-create-variable={option.kind === 'create' ? option.name : undefined} role="option" aria-selected={activeSlashId === slashOptionId(option)} tabIndex={-1} className={`slash-variable-option${option.kind === 'create' ? ' slash-create-option' : ''}`} onMouseDown={event => event.preventDefault()} onMouseEnter={() => setSlashIndex(index)} onClick={() => acceptSlash(option)}><span>{option.kind === 'create' && <Plus size={14} />}<strong>{option.kind === 'create' ? `创建「${option.name}」` : option.parameter.name}</strong><small>{!parameter.ownerId ? '全局' : parameter.ownerId === ownerId ? '本步骤' : '步骤组'}</small></span>{option.kind === 'existing' && option.parameter.description && <span className="slash-option-description">{option.parameter.description}</span>}</button>;
+      }) : <p className="slash-no-results" role="status">{slashQuery && !quickVariableName(slashQuery) ? '变量名称需为单行、1024 字节以内，且不含括号。' : slashQuery ? '当前范围不可创建变量。' : '输入名称即可创建变量。'}</p>}</div>
+      <div className="slash-menu-hint">↑↓ 选择 · Enter / Tab 确认 · Esc 关闭</div>
     </div>, document.body)}
     {!readOnly && selected && geometry && !mode && createPortal(<div ref={toolsElement} className="selection-tools" data-selection-tools role="toolbar" aria-label="选区变量操作" style={{ position: 'fixed', ...geometry.tools }}>
       <button type="button" aria-label="使用变量" onMouseDown={event => event.preventDefault()} onClick={() => choose('use')}><Braces size={14} />使用变量</button>

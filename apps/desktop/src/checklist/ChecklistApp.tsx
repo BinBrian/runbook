@@ -185,6 +185,12 @@ function InstanceWorkspace({ instance, draftRequest, blocks, fail, run, busy, co
   const draft = useExplicitDraft(`parameters:${instance.id}`, instance.parameterValues, '工作参数', { kind: 'instance', id: instance.id });
   const values = Object.fromEntries(document.parameters.map(parameter => [parameter.id, draft.value[parameter.id] ?? instance.parameterValues[parameter.id] ?? parameter.defaultValue]));
   const [stepSearch, setStepSearch] = useState<{ query: string; parameterId?: string; keepTree?: boolean; replay?: number }>({ query: '' });
+  const searchedParameter = document.parameters.find(parameter => parameter.id === stepSearch.parameterId);
+  const searchedLabel = searchedParameter ? parameterLabel(document, searchedParameter, values) : undefined;
+  useEffect(() => {
+    if (!stepSearch.parameterId || searchedLabel === undefined) return;
+    setStepSearch(previous => previous.parameterId === stepSearch.parameterId && previous.query !== searchedLabel ? { ...previous, query: searchedLabel } : previous);
+  }, [stepSearch.parameterId, searchedLabel]);
   const highlightVersion = useRef(0);
   const filtering = Boolean(stepSearch.query.trim() || stepSearch.parameterId);
   type ReadingPosition = { top: number; viewing?: string; expanded: Set<string>; groups: Set<string>; anchor?: string; offset: number };

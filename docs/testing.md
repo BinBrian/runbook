@@ -30,6 +30,7 @@ pnpm check:repo
 | `scripts/smoke-acceptance-heading-image.mjs` | 标题单双击/键盘编辑、图片预览关闭 |
 | `scripts/smoke-acceptance-panel.mjs` | 变量菜单、窄窗面板、主题颜色 |
 | `scripts/smoke-acceptance-workspace.mjs` | 变量直达、引用搜索恢复、参数生效与当前步骤操作 |
+| `scripts/smoke-variable-management.mjs` | `{{` 快捷创建、局部转全局、筛选全选与批删、引用固化、草稿及历史锁定 |
 | `scripts/smoke-favorites.mjs` | 收藏步骤、插入副本与连续步骤合组 |
 | `scripts/smoke-work-records.mjs` | 新建、再做一次、独立内容与记录、归档 |
 | `scripts/smoke-work-migration.mjs` | 清单历史模板转换、导入和旧工作保留 |
@@ -39,6 +40,8 @@ pnpm check:repo
 ## 验证结果的含义
 
 2026年10月23日，本机类型检查和186项前端测试通过；目录专项27项、正文连续推进26次及工作区17项定向检查通过。匿名化改变仓库演示内容与测试夹具，没有修改用户已导入的工作。公开准备的检查结果另见[准备记录](public-repository.md)。
+
+同日变量管理补充后，类型检查、204项前端和46项清单原生测试通过；最终桌面变量专项10组、工作区17处回归通过。涵盖快捷创建、作用域提升、批量删除及两主题/宽窄面板；原生测试另核验保存、冻结拒绝、重开和存档恢复。桌面 reload 与原生重开不等于真实桌面进程重启验收。
 
 以下项目须区分：
 
